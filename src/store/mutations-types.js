@@ -1,0 +1,1 @@
+export const SET_GOOD_MUTATION = 'SET_GOOD_MUTATION';
