@@ -9,40 +9,43 @@
       </el-row>
     </el-header>
     <el-main>
-      <el-row type="flex"
-        class="container">
-        <el-col :span="16">
-          <div></div>
-        </el-col>
-        <el-col :span="7">
-          <el-form ref="form"
-            :model="formData"
-            label-width="80px">
-            <el-form-item label="用户名">
-              <el-input v-modal="formData.name"></el-input>
-            </el-form-item>
-            <el-form-item label="密码">
-              <el-input v-modal="formData.name"
-                type="password"></el-input>5
-            </el-form-item>
-          </el-form>
-        </el-col>
-        <el-col :span="1">
-          <div></div>
-        </el-col>
-      </el-row>
+      <div class="main-bg"></div>
+      <div class="main-form">
+        <el-form ref="form"
+          :model="formData"
+          label-width="80px">
+          <el-form-item label="登陆账号">
+            <el-input v-modal="formData.name"></el-input>
+          </el-form-item>
+          <el-form-item label="登陆密码">
+            <el-input v-modal="formData.name"
+              type="password"></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-checkbox v-model="formData.checked">记住密码</el-checkbox>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary"
+              @click="submitForm">登陆</el-button>
+            <el-button>注册</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
     </el-main>
-    <el-footer>Footer</el-footer>
+    <el-footer>&copy; Power By Peng Wenxiang</el-footer>
   </el-container>
 </template>
 
 <script>
+import { JSEncrypt } from "jsencrypt";
+import { getPublicKey, login, reg } from "@/api";
 export default {
   data() {
     return {
       formData: {
-        name: "",
-        pwd: ""
+        name: "12",
+        pwd: "12345",
+        checked: true
       },
       logining: false,
       ruleForm2: {
@@ -61,6 +64,34 @@ export default {
       },
       checked: true
     };
+  },
+  methods: {
+    submitForm() {
+      getPublicKey()
+        .then(res => {
+          if (res.errorCode === 200) {
+            let name = this.formData.name;
+            let encryptor = new JSEncrypt();
+            encryptor.setPublicKey(res.data);
+            let rsaPwd = encodeURI(encryptor.encrypt(this.formData.pwd));
+            return login({ name, rsaPwd });
+          }
+        })
+        .then(res => {
+          if (res.errorCode === 200) {
+            this.$message({
+              message: "登陆成功",
+              type: "success"
+            });
+          }
+        })
+        .catch(err => {
+          this.$message({
+            message: "登陆失败",
+            type: "error"
+          });
+        });
+    }
   }
 };
 </script>
@@ -82,14 +113,32 @@ export default {
 
   .el-main
     display flex
+    padding 80px
 
-    .container
-      width 100%
+    .main-bg
+      flex 1
+      background-image url('http://127.0.0.1/images/login/login-bg-2.jpg')
+      background-repeat no-repeat
+      background-size cover
+      box-shadow 0 0 100px 60px rgba(255, 255, 255, 0.7) inset
+      margin-right 100px
+      border-radius 6px
 
-      .el-col-7
-        height 400px
-        border 1px solid #eaeaea
+    .main-form
+      display flex
+      align-items center
+      flex 0 0 360px
+
+      form
+        width 100%
         box-shadow 0 0 25px #cac6c6
-        border-radius 5px
+        padding 80px 30px 40px 30px
+        border-radius 6px
+
+  .el-footer
+    text-align center
+    background-color $color-primary
+    line-height 60px
+    color #fff
 </style>
 
