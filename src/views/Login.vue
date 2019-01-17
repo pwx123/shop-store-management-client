@@ -27,7 +27,7 @@
           <el-form-item>
             <el-button type="primary"
               @click="submitForm">登陆</el-button>
-            <el-button>注册</el-button>
+            <el-button @click="regForm">注册</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -37,14 +37,16 @@
 </template>
 
 <script>
+import MD5 from "crypto-js/md5";
 import { JSEncrypt } from "jsencrypt";
-import { getPublicKey, login, reg } from "@/api";
+import { getPublicKey, login, register } from "@/api";
 export default {
   data() {
     return {
       formData: {
-        name: "12",
+        name: "15553509117",
         pwd: "12345",
+        repPwd: "12345",
         checked: true
       },
       logining: false,
@@ -73,8 +75,9 @@ export default {
             let name = this.formData.name;
             let encryptor = new JSEncrypt();
             encryptor.setPublicKey(res.data);
-            let rsaPwd = encodeURI(encryptor.encrypt(this.formData.pwd));
-            return login({ name, rsaPwd });
+            let md5Pwd = MD5(this.formData.pwd).toString();
+            let pwd = encodeURI(encryptor.encrypt(md5Pwd));
+            return login({ name, pwd });
           }
         })
         .then(res => {
@@ -83,11 +86,50 @@ export default {
               message: "登陆成功",
               type: "success"
             });
+          } else {
+            this.$message({
+              message: res.errorMsg,
+              type: "error"
+            });
           }
         })
         .catch(err => {
           this.$message({
             message: "登陆失败",
+            type: "error"
+          });
+        });
+    },
+    regForm() {
+      getPublicKey()
+        .then(res => {
+          if (res.errorCode === 200) {
+            let name = this.formData.name;
+            let encryptor = new JSEncrypt();
+            encryptor.setPublicKey(res.data);
+            let md5Pwd = MD5(this.formData.pwd).toString();
+            let md5RepPwd = MD5(this.formData.repPwd).toString();
+            let pwd = encodeURI(encryptor.encrypt(md5Pwd));
+            let repPwd = encodeURI(encryptor.encrypt(md5RepPwd));
+            return register({ name, pwd, repPwd });
+          }
+        })
+        .then(res => {
+          if (res.errorCode === 200) {
+            this.$message({
+              message: "注册成功",
+              type: "success"
+            });
+          } else {
+            this.$message({
+              message: res.errorMsg,
+              type: "error"
+            });
+          }
+        })
+        .catch(err => {
+          this.$message({
+            message: "注册失败",
             type: "error"
           });
         });
@@ -132,7 +174,7 @@ export default {
       form
         width 100%
         box-shadow 0 0 25px #cac6c6
-        padding 80px 30px 40px 30px
+        padding 60px 30px 20px 20px
         border-radius 6px
 
   .el-footer
