@@ -2,14 +2,14 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import Login from '@/views/Login.vue';
 import NotFound from '@/views/404.vue';
-import Home from '@/views/Home.vue';
+import Home from '@/views/home/Home.vue';
+import Index from '@/views/index/index.vue';
 import Main from '@/views/Main.vue';
 import Table from '@/views/nav1/Table.vue';
 import Form from '@/views/nav1/Form.vue';
 import user from '@/views/nav1/user.vue';
 import Page4 from '@/views/nav2/Page4.vue';
 import Page5 from '@/views/nav2/Page5.vue';
-import Page6 from '@/views/nav3/Page6.vue';
 
 Vue.use(Router);
 
@@ -29,13 +29,22 @@ export default new Router({
     {
       path: '/',
       component: Home,
+      isSingle: true,
+      name: '首页',
+      children: [{
+        path: '',
+        component: Index,
+        name: '主页'
+      }]
+    },
+    {
+      path: '/',
+      component: Home,
       name: '导航一',
-      iconCls: 'el-icon-message', //图标样式class
       children: [{
           path: '/main',
           component: Main,
-          name: '主页',
-          hidden: true
+          name: '主页'
         },
         {
           path: '/table',
@@ -58,7 +67,6 @@ export default new Router({
       path: '/',
       component: Home,
       name: '导航二',
-      iconCls: 'fa fa-id-card-o',
       children: [{
           path: '/page4',
           component: Page4,
@@ -70,18 +78,6 @@ export default new Router({
           name: '页面5'
         }
       ]
-    },
-    {
-      path: '/',
-      component: Home,
-      name: '',
-      iconCls: 'fa fa-address-card',
-      leaf: true, //只有一个节点
-      children: [{
-        path: '/page6',
-        component: Page6,
-        name: '导航三'
-      }]
     },
     {
       path: '*',

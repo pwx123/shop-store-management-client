@@ -1,3 +1,5 @@
+export const mobileReg = /^1[3456789]\d{9}$/;
+
 export function emailCheck(email) {
   var emailreg = /^([a-zA-Z0-9]+[_|.]?)*[a-zA-Z0-9]+@([a-zA-Z0-9]+[_|.]?)*[a-zA-Z0-9]+\.[a-zA-Z]{2,3}$/;
   if (!emailreg.test(email)) {

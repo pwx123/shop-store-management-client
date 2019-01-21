@@ -1,7 +1,6 @@
 <template>
   <div id="app">
-    <transition name="fade"
-      mode="out-in">
+    <transition name="el-fade-in-linear">
       <router-view></router-view>
     </transition>
   </div>
@@ -28,5 +27,19 @@ body {
   top: 0px;
   bottom: 0px;
   width: 100%;
+}
+
+.fade-enter {
+  opacity: 0;
+}
+.fade-leave {
+  opacity: 1;
+}
+.fade-enter-active {
+  transition: opacity 0.5s;
+}
+.fade-leave-active {
+  opacity: 0;
+  transition: opacity 0.5s;
 }
 </style>

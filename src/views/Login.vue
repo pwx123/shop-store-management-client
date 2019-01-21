@@ -13,12 +13,16 @@
       <div class="main-form">
         <el-form ref="form"
           :model="formData"
+          :rules="formRules"
+          :hide-required-asterisk="true"
           label-width="80px">
-          <el-form-item label="登陆账号">
-            <el-input v-modal="formData.name"></el-input>
+          <el-form-item label="登陆账号"
+            prop="name">
+            <el-input v-model="formData.name"></el-input>
           </el-form-item>
-          <el-form-item label="登陆密码">
-            <el-input v-modal="formData.name"
+          <el-form-item label="登陆密码"
+            prop="pwd">
+            <el-input v-model="formData.pwd"
               type="password"></el-input>
           </el-form-item>
           <el-form-item>
@@ -26,7 +30,7 @@
           </el-form-item>
           <el-form-item>
             <el-button type="primary"
-              @click="submitForm">登陆</el-button>
+              @click="submitForm('form')">登陆</el-button>
             <el-button @click="regForm">注册</el-button>
           </el-form-item>
         </el-form>
@@ -40,65 +44,67 @@
 import MD5 from "crypto-js/md5";
 import { JSEncrypt } from "jsencrypt";
 import { getPublicKey, login, register } from "@/api";
+import { mobileReg } from "@/util/util";
 export default {
   data() {
     return {
+      logining: false,
       formData: {
-        name: "15553509117",
-        pwd: "12345",
-        repPwd: "12345",
+        name: "",
+        pwd: "",
         checked: true
       },
-      logining: false,
-      ruleForm2: {
-        account: "admin",
-        checkPass: "123456"
-      },
-      rules2: {
-        account: [
-          { required: true, message: "请输入账号", trigger: "blur" }
-          //{ validator: validaePass }
-        ],
-        checkPass: [
-          { required: true, message: "请输入密码", trigger: "blur" }
-          //{ validator: validaePass2 }
-        ]
+      formRules: {
+        name: [{ validator: this.mobileRegFun, trigger: "blur" }],
+        pwd: [{ required: true, message: "请输入密码", trigger: "blur" }]
       },
       checked: true
     };
   },
   methods: {
-    submitForm() {
-      getPublicKey()
-        .then(res => {
-          if (res.errorCode === 200) {
-            let name = this.formData.name;
-            let encryptor = new JSEncrypt();
-            encryptor.setPublicKey(res.data);
-            let md5Pwd = MD5(this.formData.pwd).toString();
-            let pwd = encodeURI(encryptor.encrypt(md5Pwd));
-            return login({ name, pwd });
-          }
-        })
-        .then(res => {
-          if (res.errorCode === 200) {
-            this.$message({
-              message: "登陆成功",
-              type: "success"
+    submitForm(form) {
+      this.$refs[form].validate(valid => {
+        if (valid) {
+          getPublicKey()
+            .then(res => {
+              if (res.errorCode === 200) {
+                let name = this.formData.name;
+                let encryptor = new JSEncrypt();
+                encryptor.setPublicKey(res.data);
+                let md5Pwd = MD5(this.formData.pwd).toString();
+                let pwd = encodeURI(encryptor.encrypt(md5Pwd));
+                return login({ name, pwd });
+              }
+            })
+            .then(res => {
+              if (res.errorCode === 200) {
+                this.$message({
+                  message: "登陆成功",
+                  type: "success",
+                  duration: 1000,
+                  onClose: () => {
+                    this.$router.push({
+                      path: "/"
+                    });
+                  }
+                });
+              } else {
+                this.$message({
+                  message: res.errorMsg,
+                  type: "error"
+                });
+              }
+            })
+            .catch(err => {
+              this.$message({
+                message: "登陆失败",
+                type: "error"
+              });
             });
-          } else {
-            this.$message({
-              message: res.errorMsg,
-              type: "error"
-            });
-          }
-        })
-        .catch(err => {
-          this.$message({
-            message: "登陆失败",
-            type: "error"
-          });
-        });
+        } else {
+          return false;
+        }
+      });
     },
     regForm() {
       getPublicKey()
@@ -133,6 +139,13 @@ export default {
             type: "error"
           });
         });
+    },
+    mobileRegFun(rule, value, callback) {
+      if (!mobileReg.test(value)) {
+        callback(new Error("请输入正确的手机号"));
+      } else {
+        callback();
+      }
     }
   }
 };
