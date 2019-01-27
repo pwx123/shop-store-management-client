@@ -12,10 +12,7 @@
             {{sysUserName}}
           </span>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item>我的消息</el-dropdown-item>
-            <el-dropdown-item>设置</el-dropdown-item>
-            <el-dropdown-item divided
-              @click.native="logout">退出登录</el-dropdown-item>
+            <el-dropdown-item @click.native="logout">退出登录</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
       </div>
@@ -24,18 +21,16 @@
       class="main">
       <aside>
         <el-menu :default-active="$route.path"
-          @open="handleopen"
-          @close="handleclose"
-          @select="handleselect"
           router
           unique-opened>
           <template v-for="(item,index) in navRouter">
             <el-menu-item v-if="item.isSingle"
               :index="item.path"
-              :key="item.name">
-              {{item.name}}
+              :key="item.children[0].name">
+              {{item.children[0].name}}
             </el-menu-item>
-            <el-submenu v-else :index="index + ''"
+            <el-submenu v-else
+              :index="index + ''"
               :key="item.name">
               <template slot="title">{{item.name}}</template>
               <el-menu-item v-for="child in item.children"
@@ -49,7 +44,7 @@
       </aside>
       <section class="content-container">
         <el-col :span="24">
-          <transition name="fade"
+          <transition name="fade-transform"
             mode="out-in">
             <router-view></router-view>
           </transition>
@@ -63,7 +58,7 @@
 export default {
   data() {
     return {
-      sysName: "书店管理系统",
+      sysName: "网上书店管理系统",
       collapsed: false,
       sysUserName: "",
       sysUserAvatar: "",
@@ -87,17 +82,6 @@ export default {
     }
   },
   methods: {
-    onSubmit() {
-      console.log("submit!");
-    },
-    handleopen() {
-      //console.log('handleopen');
-    },
-    handleclose() {
-      //console.log('handleclose');
-    },
-    handleselect: function(a, b) {},
-    //退出登录
     logout: function() {
       var _this = this;
       this.$confirm("确认退出吗?", "提示", {})
@@ -106,27 +90,9 @@ export default {
           _this.$router.push("/login");
         })
         .catch(() => {});
-    },
-    //折叠导航栏
-    collapse: function() {
-      this.collapsed = !this.collapsed;
-    },
-    showMenu(i, status) {
-      this.$refs.menuCollapsed.getElementsByClassName(
-        "submenu-hook-" + i
-      )[0].style.display = status ? "block" : "none";
     }
   },
-  mounted() {
-    var user = sessionStorage.getItem("user");
-    if (user) {
-      user = JSON.parse(user);
-      this.sysUserName = user.name || "";
-      this.sysUserAvatar = user.avatar || "";
-    }
-    console.log(this.$router);
-    console.log(this.$route.matched);
-  }
+  mounted() {}
 };
 </script>
 
@@ -187,6 +153,6 @@ export default {
 
     .content-container
       flex 1
-      overflow-y scroll
+      overflow-y hidden
       padding 20px
 </style>

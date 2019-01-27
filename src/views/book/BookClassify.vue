@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>vuex 测试</h1>
+
   </div>
 </template>
 
@@ -8,5 +8,8 @@
   export default {
 
   }
-
 </script>
+
+<style scoped>
+
+</style>

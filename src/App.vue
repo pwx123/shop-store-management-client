@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <transition name="el-fade-in-linear">
+    <transition name="fade-transform">
       <router-view></router-view>
     </transition>
   </div>
@@ -14,8 +14,8 @@ export default {
 
 <style>
 body {
-  margin: 0px;
-  padding: 0px;
+  margin: 0;
+  padding: 0;
   font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB,
     Microsoft YaHei, SimSun, sans-serif;
   font-size: 14px;
@@ -24,22 +24,40 @@ body {
 
 #app {
   position: absolute;
-  top: 0px;
-  bottom: 0px;
+  top: 0;
+  bottom: 0;
   width: 100%;
 }
 
-.fade-enter {
+.fade-transform-leave-active,
+.fade-transform-enter-active {
+  transition: all 0.5s;
+}
+
+.fade-transform-enter {
   opacity: 0;
+  transform: translateX(-30px);
 }
-.fade-leave {
-  opacity: 1;
-}
-.fade-enter-active {
-  transition: opacity 0.5s;
-}
-.fade-leave-active {
+
+.fade-transform-leave-to {
   opacity: 0;
-  transition: opacity 0.5s;
+  transform: translateX(30px);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+  background: #3385ff;
+}
+
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  background: #ededed;
 }
 </style>
