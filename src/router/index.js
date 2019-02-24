@@ -31,6 +31,7 @@ export default new Router({
       path: '/',
       component: Home,
       isSingle: true,
+      iconCls: 'iconfont icon-home',
       children: [{
         path: '',
         component: Index,
@@ -41,6 +42,7 @@ export default new Router({
       path: '/',
       component: Home,
       name: '订单管理',
+      iconCls: 'iconfont icon-emaxcitygerenxinxitubiaoji03',
       children: [{
         path: '/orderList',
         component: OrderList,
@@ -51,6 +53,7 @@ export default new Router({
       path: '/',
       component: Home,
       name: '图书管理',
+      iconCls: 'iconfont icon-book',
       children: [{
           path: '/bookList',
           component: BookList,
@@ -67,6 +70,7 @@ export default new Router({
       path: '/',
       component: Home,
       name: '用户管理',
+      iconCls: 'iconfont icon-icon_user_management',
       children: [{
         path: '/userList',
         component: UserList,

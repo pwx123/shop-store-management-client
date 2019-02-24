@@ -27,12 +27,12 @@
             <el-menu-item v-if="item.isSingle"
               :index="item.path"
               :key="item.children[0].name">
-              {{item.children[0].name}}
+              <i :class="item.iconCls"></i>&nbsp; {{item.children[0].name}}
             </el-menu-item>
             <el-submenu v-else
               :index="index + ''"
               :key="item.name">
-              <template slot="title">{{item.name}}</template>
+              <template slot="title"><i :class="item.iconCls"></i>&nbsp; {{item.name}}</template>
               <el-menu-item v-for="child in item.children"
                 :index="child.path"
                 :key="child.name">
@@ -148,11 +148,15 @@ export default {
     aside
       flex 0 0 230px
 
-      .el-menu
+      & > .el-menu
         height 100%
+        font-weight bold
+
+        .el-menu .el-menu-item
+          font-weight normal
 
     .content-container
       flex 1
-      overflow-y hidden
+      overflow-y scroll
       padding 20px
 </style>

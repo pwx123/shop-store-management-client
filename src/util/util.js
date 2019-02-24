@@ -29,19 +29,68 @@ export function stringCheck(string) {
   return true;
 }
 
-function removeSpace(string) {
+export function removeSpace(string) {
   var result;
   result = string.trim();
   result = result.replace(/\s/g, '');
   return result;
 }
 
-export function timeFormat(time) {
-  let date = new Date(time);
-  let month = date.getMonth() + 1;
-  let day = date.getDay();
-  let hour = date.getHours();
-  let minutes = date.getMinutes();
-  let str = `${month}-${day} ${hour}:${minutes}`;
+/**
+ * 时间补0
+ *
+ * @export
+ * @param {*} val
+ * @returns
+ */
+export function set2(val) {
+  return val > 10 ? val : '0' + val;
+}
+
+/**
+ * 时间格式化 'yyyy-MM-dd HH:mm:ss'
+ *
+ * @export
+ * @param {time} time 可选 时间
+ * @param {Boolean} showTime 是否显示时间
+ * @returns 格式化后的字符串
+ */
+export function timeFormat(time, showTime) {
+  let date = time ? new Date(time) : new Date();
+  let year = date.getFullYear();
+  let month = set2(date.getMonth() + 1);
+  let day = set2(date.getDate());
+  let hour = set2(date.getHours());
+  let minutes = set2(date.getMinutes());
+  let seconeds = set2(date.getSeconds());
+  let str = `${year}-${month}-${day}`;
+  str += (showTime ? ` ${hour}:${minutes}:${seconeds}` : '');
   return str;
+}
+
+/**
+ * 获取距离今天x天的时间
+ *
+ * @export
+ * @param {Number} num 前/后几天
+ * @param {Boolean} showTime 是否显示时间
+ * @returns 格式化后的字符串
+ */
+export function getSomeFormatTime(num, showTime) {
+  let date = new Date();
+  date.setDate(date.getDate() + num);
+  return timeFormat(date, showTime);
+}
+
+/**
+ * 获取datePicker 时间
+ *
+ * @param {Number} num 相差的天数
+ * @returns 时间数组
+ */
+export function getDatePickerTime(num) {
+  var arr = [];
+  arr[0] = getSomeFormatTime(-num) + ' 00:00:00';
+  arr[1] = timeFormat() + ' 23:59:59';
+  return arr;
 }

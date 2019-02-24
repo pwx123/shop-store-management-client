@@ -29,6 +29,10 @@ axios.interceptors.response.use(
     if (error.response.status) {
       switch (error.response.status) {
         case 401:
+          Message({
+            message: '未登录或登陆过期，请重新登陆',
+            type: 'error'
+          });
           router.replace({
             path: '/login',
             query: {

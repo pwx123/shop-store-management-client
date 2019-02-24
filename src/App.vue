@@ -51,13 +51,6 @@ body {
 
 ::-webkit-scrollbar-thumb {
   border-radius: 4px;
-  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
-  background: #3385ff;
-}
-
-::-webkit-scrollbar-track {
-  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
-  background: #ededed;
+  background: #c9c9c9;
 }
 </style>

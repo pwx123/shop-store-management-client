@@ -43,7 +43,7 @@
 <script>
 import MD5 from "crypto-js/md5";
 import { JSEncrypt } from "jsencrypt";
-import { getPublicKey, login, register } from "@/api";
+import { getPublicKey, login, register } from "@/api/login";
 import { mobileReg } from "@/util/util";
 export default {
   data() {
@@ -78,13 +78,14 @@ export default {
             })
             .then(res => {
               if (res.errorCode === 200) {
+                var path = this.$route.query.redirect ? this.$route.query.redirect : '/';
                 this.$message({
                   message: "登陆成功",
                   type: "success",
                   duration: 1000,
                   onClose: () => {
                     this.$router.push({
-                      path: "/"
+                      path: path
                     });
                   }
                 });
