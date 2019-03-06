@@ -8,6 +8,7 @@
         end-placeholder="结束日期"
         format="yyyy-MM-dd HH:mm:ss"
         value-format="yyyy-MM-dd HH:mm:ss"
+        :editable="false"
         :clearable="false"
         :default-time="['00:00:00', '23:59:59']">
       </el-date-picker>
@@ -46,8 +47,9 @@
       </el-button>
     </div>
     <div class="table-container">
-      <el-table :data="tableData"
-        size="small"
+      <el-table size="small"
+        v-loading="loading"
+        :data="tableData"
         :header-cell-style="headerStyle"
         :height="460"
         @selection-change="handleSelectionChange"
@@ -131,8 +133,8 @@
 </template>
 
 <script>
-import * as bookApi from "@/api/bookList";
-import { timeFormat, getDatePickerTime } from "./../../util/util";
+import * as bookApi from "./../../api/bookList";
+import { timeFormat, getDatePickerTime, handleError } from "./../../util/util";
 export default {
   data() {
     return {
@@ -146,6 +148,8 @@ export default {
       headerStyle: {
         background: "#fdfdfd"
       },
+      // 加载中
+      loading: false,
       // 选择的值
       multipleSelection: [],
       // 搜索参数
@@ -175,7 +179,9 @@ export default {
       this.searchParam.startTime = this.dataPicker[0];
       this.searchParam.endTime = this.dataPicker[1];
       try {
+        this.loading = true;
         let res = await bookApi.getBookList(this.searchParam);
+        this.loading = false;
         if (res.errorCode === 200) {
           this.tableData = res.data.rows;
           this.total = res.data.total;
@@ -186,14 +192,24 @@ export default {
           });
         }
       } catch (error) {
-        this.$message({
-          message: error.errorMsg || "系统错误",
-          type: "error"
-        });
+        this.loading = false;
+        handleError(error);
       }
     },
     // 重置搜索条件
-    resetSearch() {},
+    resetSearch() {
+      this.dataPicker = getDatePickerTime(30);
+      this.searchParam = {
+        pageNumber: 1,
+        pageSize: 15,
+        startTime: "",
+        endTime: "",
+        name: "",
+        author: "",
+        press: ""
+      };
+      this.getBookList();
+    },
     // 删除图书
     async deleteBook() {
       let params = this.multipleSelection.map(val => val.id);
@@ -202,7 +218,7 @@ export default {
       if (params.length === 0) {
         this.$message({
           message: "请选择要删除的图书",
-          type: "warn"
+          type: "warning"
         });
         return false;
       }
@@ -213,6 +229,7 @@ export default {
             message: "删除成功",
             type: "success"
           });
+          this.searchParam.pageNumber = 1;
           this.getBookList();
         } else {
           this.$message({
@@ -221,10 +238,7 @@ export default {
           });
         }
       } catch (error) {
-        this.$message({
-          message: error.errorMsg || "系统错误",
-          type: "error"
-        });
+        handleError(error);
       }
     },
     // 图书选择变化

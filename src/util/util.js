@@ -1,4 +1,9 @@
+import {
+  Message
+} from "element-ui";
+
 export const mobileReg = /^1[3456789]\d{9}$/;
+export const pwdReg = /^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{8,16}$/;
 
 export function emailCheck(email) {
   var emailreg = /^([a-zA-Z0-9]+[_|.]?)*[a-zA-Z0-9]+@([a-zA-Z0-9]+[_|.]?)*[a-zA-Z0-9]+\.[a-zA-Z]{2,3}$/;
@@ -8,7 +13,7 @@ export function emailCheck(email) {
   return true;
 }
 export function pwdCheck(pwd) {
-  var pwdreg = /^[a-zA-Z]\w{5,17}$/;
+  var pwdreg = /^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{8,16}$/;
   if (!pwdreg.test(pwd)) {
     return false;
   }
@@ -93,4 +98,21 @@ export function getDatePickerTime(num) {
   arr[0] = getSomeFormatTime(-num) + ' 00:00:00';
   arr[1] = timeFormat() + ' 23:59:59';
   return arr;
+}
+
+/**
+ * 错误处理
+ *
+ * @export
+ * @param {*} error
+ */
+export function handleError(error) {
+  var msg = '系统错误';
+  if (error && error.errorMsg) {
+    msg = error.errorMsg;
+  }
+  Message({
+    message: msg,
+    type: 'error'
+  })
 }

@@ -1,8 +1,5 @@
 // 引入 axios
 import axios from "axios";
-import {
-  Message
-} from "element-ui";
 import router from "@/router";
 
 // 环境的切换

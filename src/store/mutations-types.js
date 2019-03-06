@@ -1,1 +1,1 @@
-export const SET_GOOD_MUTATION = 'SET_GOOD_MUTATION';
+export const SET_USERINFO = 'SET_USERINFO';

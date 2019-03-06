@@ -1,6 +1,7 @@
 <template>
   <div id="app">
-    <transition name="fade-transform">
+    <transition name="fade-transform"
+      mode="out-in">
       <router-view></router-view>
     </transition>
   </div>
@@ -13,7 +14,8 @@ export default {
 </script>
 
 <style>
-body,html {
+body,
+html {
   width: 100%;
   height: 100%;
   margin: 0;
@@ -23,6 +25,14 @@ body,html {
     Microsoft YaHei, SimSun, sans-serif;
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
+}
+
+a {
+  text-decoration: none;
+}
+
+li {
+  list-style: none;
 }
 
 #app {
@@ -53,5 +63,9 @@ body,html {
 ::-webkit-scrollbar-thumb {
   border-radius: 4px;
   background: #c9c9c9;
+}
+
+.el-picker-panel__footer .el-picker-panel__link-btn:first-child span {
+  display: none;
 }
 </style>

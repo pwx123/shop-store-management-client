@@ -6,7 +6,8 @@
         {{sysName}}
       </div>
       <div class="userinfo">
-        <el-dropdown trigger="hover">
+        <el-dropdown trigger="hover"
+          size="medium">
           <span class="el-dropdown-link userinfo-inner">
             <img :src="sysUserAvatar" />
             {{sysUserName}}
@@ -55,11 +56,15 @@
 </template>
 
 <script>
+import { mapMutations } from "vuex";
+import { getUserInfo } from "./../../api/common";
+import { logout } from "./../../api/login";
+import { handleError } from "./../../util/util";
+
 export default {
   data() {
     return {
       sysName: "网上书店管理系统",
-      collapsed: false,
       sysUserName: "",
       sysUserAvatar: "",
       form: {
@@ -74,6 +79,9 @@ export default {
       }
     };
   },
+  created() {
+    this.getLoginUserInfo();
+  },
   computed: {
     navRouter() {
       return this.$router.options.routes.filter(router => {
@@ -82,15 +90,44 @@ export default {
     }
   },
   methods: {
+    async getLoginUserInfo() {
+      try {
+        var res = await getUserInfo();
+        if (res.errorCode === 200) {
+          this.setUserInfo(res.data);
+        } else {
+          this.$message({
+            message: res.errorMsg,
+            type: "error"
+          });
+        }
+      } catch (error) {
+        handleError(error);
+      }
+    },
     logout: function() {
-      var _this = this;
       this.$confirm("确认退出吗?", "提示", {})
-        .then(() => {
-          sessionStorage.removeItem("user");
-          _this.$router.push("/login");
+        .then(async () => {
+          try {
+            let res = await logout();
+            if (res.errorCode === 200) {
+              this.setUserInfo({});
+              this.$router.push("/login");
+            } else {
+              this.$message({
+                message: res.errorMsg,
+                type: "error"
+              });
+            }
+          } catch (error) {
+            handleError(error);
+          }
         })
         .catch(() => {});
-    }
+    },
+    ...mapMutations({
+      setUserInfo: "SET_USERINFO"
+    })
   },
   mounted() {}
 };
@@ -106,7 +143,6 @@ export default {
   .header
     display flex
     height 60px
-    line-height 60px
     background $color-primary
     color #fff
 
@@ -128,6 +164,7 @@ export default {
 
     .logo
       height 60px
+      line-height 60px
       font-size 22px
       font-weight 600
       padding-left 20px

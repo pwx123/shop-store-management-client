@@ -1,4 +1,4 @@
 const state = {
-  good: {}
+  userinfo: {}
 };
 export default state;

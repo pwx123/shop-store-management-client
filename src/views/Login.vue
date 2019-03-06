@@ -18,20 +18,24 @@
           label-width="80px">
           <el-form-item label="登陆账号"
             prop="name">
-            <el-input v-model="formData.name"></el-input>
+            <el-input v-model="formData.name"
+              maxlength="11"
+              placeholder="请输入登陆手机号"></el-input>
           </el-form-item>
           <el-form-item label="登陆密码"
             prop="pwd">
             <el-input v-model="formData.pwd"
+              maxlength="16"
+              placeholder="请输入密码"
               type="password"></el-input>
           </el-form-item>
           <el-form-item>
-            <el-checkbox v-model="formData.checked">记住密码</el-checkbox>
+            <el-checkbox v-model="formData.savePwd">记住密码</el-checkbox>
           </el-form-item>
           <el-form-item>
             <el-button type="primary"
               @click="submitForm('form')">登陆</el-button>
-            <el-button @click="regForm">注册</el-button>
+            <el-button @click.native="linkToReg">注册</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -43,8 +47,13 @@
 <script>
 import MD5 from "crypto-js/md5";
 import { JSEncrypt } from "jsencrypt";
-import { getPublicKey, login, register } from "@/api/login";
-import { mobileReg } from "@/util/util";
+import Base64 from "./../util/base64";
+import { login } from "./../api/login";
+import { getPublicKey } from "./../api/common";
+import { mobileReg, handleError } from "./../util/util";
+
+const SAVE_NAME = "saveItem";
+
 export default {
   data() {
     return {
@@ -52,20 +61,35 @@ export default {
       formData: {
         name: "",
         pwd: "",
-        repPwd: "",
-        checked: true
+        savePwd: true
       },
       formRules: {
         name: [{ validator: this.mobileRegFun, trigger: "blur" }],
         pwd: [{ required: true, message: "请输入密码", trigger: "blur" }]
-      },
-      checked: true
+      }
     };
+  },
+  created() {
+    let saveItem = localStorage.getItem(SAVE_NAME);
+    if (saveItem) {
+      saveItem = JSON.parse(saveItem);
+      this.formData.name = Base64.decode(saveItem.name);
+      this.formData.pwd = Base64.decode(saveItem.pwd);
+    }
   },
   methods: {
     submitForm(form) {
       this.$refs[form].validate(async valid => {
         if (valid) {
+          if (this.formData.savePwd) {
+            var obj = {
+              name: Base64.encode(this.formData.name),
+              pwd: Base64.encode(this.formData.pwd)
+            };
+            localStorage.setItem(SAVE_NAME, JSON.stringify(obj));
+          } else {
+            localStorage.removeItem(SAVE_NAME);
+          }
           try {
             let res = await getPublicKey();
             if (res.errorCode === 200) {
@@ -102,49 +126,13 @@ export default {
               });
             }
           } catch (error) {
-            this.$message({
-              message: error,
-              type: "error"
-            });
+            handleError(error);
           }
-        } else {
-          return false;
         }
       });
     },
-    regForm() {
-      getPublicKey()
-        .then(res => {
-          if (res.errorCode === 200) {
-            let name = this.formData.name;
-            let encryptor = new JSEncrypt();
-            encryptor.setPublicKey(res.data);
-            let md5Pwd = MD5(this.formData.pwd).toString();
-            let md5RepPwd = MD5(this.formData.repPwd).toString();
-            let pwd = encodeURI(encryptor.encrypt(md5Pwd));
-            let repPwd = encodeURI(encryptor.encrypt(md5RepPwd));
-            return register({ name, pwd, repPwd });
-          }
-        })
-        .then(res => {
-          if (res.errorCode === 200) {
-            this.$message({
-              message: "注册成功",
-              type: "success"
-            });
-          } else {
-            this.$message({
-              message: res.errorMsg,
-              type: "error"
-            });
-          }
-        })
-        .catch(err => {
-          this.$message({
-            message: "注册失败",
-            type: "error"
-          });
-        });
+    linkToReg() {
+      this.$router.push("/register");
     },
     mobileRegFun(rule, value, callback) {
       if (!mobileReg.test(value)) {

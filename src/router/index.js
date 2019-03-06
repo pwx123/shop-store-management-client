@@ -5,6 +5,7 @@ const Forbidden = () => import( /* webpackChunkName: "Forbidden" */ '@/views/err
 const NotFound = () => import( /* webpackChunkName: "NotFound" */ '@/views/error/404');
 const ServerError = () => import( /* webpackChunkName: "ServerError" */ '@/views/error/500');
 const Login = () => import( /* webpackChunkName: "Login" */ '@/views/Login');
+const Register = () => import( /* webpackChunkName: "Register" */ '@/views/Register');
 const Home = () => import( /* webpackChunkName: "Home" */ '@/views/home/Home');
 const Index = () => import( /* webpackChunkName: "Index" */ '@/views/index/Index');
 const OrderList = () => import( /* webpackChunkName: "OrderList" */ '@/views/order/OrderList');
@@ -20,6 +21,12 @@ export default new Router({
   routes: [{
       path: '/login',
       component: Login,
+      name: '',
+      hidden: true
+    },
+    {
+      path: '/register',
+      component: Register,
       name: '',
       hidden: true
     },
