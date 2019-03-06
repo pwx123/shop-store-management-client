@@ -1,7 +1,9 @@
 import Vue from 'vue';
 import Router from 'vue-router';
 
+const Forbidden = () => import( /* webpackChunkName: "Forbidden" */ '@/views/error/403');
 const NotFound = () => import( /* webpackChunkName: "NotFound" */ '@/views/error/404');
+const ServerError = () => import( /* webpackChunkName: "ServerError" */ '@/views/error/500');
 const Login = () => import( /* webpackChunkName: "Login" */ '@/views/Login');
 const Home = () => import( /* webpackChunkName: "Home" */ '@/views/home/Home');
 const Index = () => import( /* webpackChunkName: "Index" */ '@/views/index/Index');
@@ -18,12 +20,6 @@ export default new Router({
   routes: [{
       path: '/login',
       component: Login,
-      name: '',
-      hidden: true
-    },
-    {
-      path: '/404',
-      component: NotFound,
       name: '',
       hidden: true
     },
@@ -82,6 +78,14 @@ export default new Router({
       component: Home,
       hidden: true,
       children: [{
+        path: '/forbidden',
+        component: Forbidden,
+        name: 'forbidden'
+      }, {
+        path: '/serverError',
+        component: ServerError,
+        name: 'serverError'
+      }, {
         path: '/*',
         component: NotFound,
         name: '404'

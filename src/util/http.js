@@ -1,19 +1,19 @@
 // 引入 axios
-import axios from 'axios';
+import axios from "axios";
 import {
   Message
-} from 'element-ui'
-import router from '@/router';
+} from "element-ui";
+import router from "@/router";
 
 // 环境的切换
-if (process.env.NODE_ENV == 'development') {
-  axios.defaults.baseURL = '/api';
+if (process.env.NODE_ENV == "development") {
+  axios.defaults.baseURL = "/api";
 } else {
-  axios.defaults.baseURL = '/api';
+  axios.defaults.baseURL = "/api";
 }
 
 // 超时时间
-axios.defaults.timeout = 10000;
+axios.defaults.timeout = 3000;
 axios.defaults.withCredentials = true;
 // 响应拦截
 axios.interceptors.response.use(
@@ -29,31 +29,22 @@ axios.interceptors.response.use(
     if (error.response.status) {
       switch (error.response.status) {
         case 401:
-          Message({
-            message: '未登录或登陆过期，请重新登陆',
-            type: 'error'
-          });
-          router.replace({
-            path: '/login',
-            query: {
-              redirect: router.currentRoute.fullPath
-            }
-          });
+          setTimeout(() => {
+            router.replace({
+              path: "/login",
+              query: {
+                redirect: router.currentRoute.fullPath
+              }
+            });
+          }, 500);
           break;
-        case 404:
-          Message({
-            message: '网络请求不存在',
-            type: 'error'
-          });
-          break;
-        default:
-          Message({
-            message: error.response.data.message,
-            type: 'error'
+        case 403:
+          router.push({
+            path: "/forbidden"
           });
       }
-      return Promise.reject(error.response);
     }
+    return Promise.reject(error.response);
   }
 );
 

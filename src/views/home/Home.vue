@@ -100,9 +100,7 @@ export default {
 @import './../../styl/variables.styl'
 
 .container
-  position absolute
-  top 0px
-  bottom 0px
+  height 100%
   width 100%
 
   .header
@@ -150,7 +148,6 @@ export default {
 
       & > .el-menu
         height 100%
-        font-weight bold
 
         .el-menu .el-menu-item
           font-weight normal

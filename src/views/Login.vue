@@ -52,6 +52,7 @@ export default {
       formData: {
         name: "",
         pwd: "",
+        repPwd: "",
         checked: true
       },
       formRules: {
@@ -63,22 +64,21 @@ export default {
   },
   methods: {
     submitForm(form) {
-      this.$refs[form].validate(valid => {
+      this.$refs[form].validate(async valid => {
         if (valid) {
-          getPublicKey()
-            .then(res => {
-              if (res.errorCode === 200) {
-                let name = this.formData.name;
-                let encryptor = new JSEncrypt();
-                encryptor.setPublicKey(res.data);
-                let md5Pwd = MD5(this.formData.pwd).toString();
-                let pwd = encodeURI(encryptor.encrypt(md5Pwd));
-                return login({ name, pwd });
-              }
-            })
-            .then(res => {
-              if (res.errorCode === 200) {
-                var path = this.$route.query.redirect ? this.$route.query.redirect : '/';
+          try {
+            let res = await getPublicKey();
+            if (res.errorCode === 200) {
+              let name = this.formData.name;
+              let encryptor = new JSEncrypt();
+              encryptor.setPublicKey(res.data);
+              let md5Pwd = MD5(this.formData.pwd).toString();
+              let pwd = encodeURI(encryptor.encrypt(md5Pwd));
+              let logRes = await login({ name, pwd });
+              if (logRes.errorCode === 200) {
+                var path = this.$route.query.redirect
+                  ? this.$route.query.redirect
+                  : "/";
                 this.$message({
                   message: "登陆成功",
                   type: "success",
@@ -91,17 +91,22 @@ export default {
                 });
               } else {
                 this.$message({
-                  message: res.errorMsg,
+                  message: logRes.errorMsg,
                   type: "error"
                 });
               }
-            })
-            .catch(err => {
+            } else {
               this.$message({
-                message: "登陆失败",
+                message: res.errorMsg,
                 type: "error"
               });
+            }
+          } catch (error) {
+            this.$message({
+              message: error,
+              type: "error"
             });
+          }
         } else {
           return false;
         }

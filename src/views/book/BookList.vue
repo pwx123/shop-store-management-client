@@ -7,6 +7,8 @@
         start-placeholder="开始日期"
         end-placeholder="结束日期"
         format="yyyy-MM-dd HH:mm:ss"
+        value-format="yyyy-MM-dd HH:mm:ss"
+        :clearable="false"
         :default-time="['00:00:00', '23:59:59']">
       </el-date-picker>
       <el-input placeholder="书名"
@@ -37,12 +39,18 @@
         @click.native="resetSearch">
         重置
       </el-button>
+      <el-button type="danger"
+        size="medium"
+        @click.native="deleteBook">
+        删除
+      </el-button>
     </div>
     <div class="table-container">
       <el-table :data="tableData"
         size="small"
         :header-cell-style="headerStyle"
         :height="460"
+        @selection-change="handleSelectionChange"
         border>
         <el-table-column type="selection"
           align="center"
@@ -98,19 +106,15 @@
           label="图片"
           width="180">
         </el-table-column>
-        <el-table-column align="center"
+        <el-table-column prop="createdAt"
+          align="center"
           label="创建时间"
           width="160">
-          <template slot-scope="scope">
-            <span>{{ timeFormatLocal(scope.row.createAt) }}</span>
-          </template>
         </el-table-column>
-        <el-table-column align="center"
+        <el-table-column prop="updatedAt"
+          align="center"
           label="修改时间"
           width="160">
-          <template slot-scope="scope">
-            <span>{{ timeFormatLocal(scope.row.updateAt) }}</span>
-          </template>
         </el-table-column>
       </el-table>
       <el-pagination background
@@ -132,12 +136,19 @@ import { timeFormat, getDatePickerTime } from "./../../util/util";
 export default {
   data() {
     return {
+      // 列表数据总数
       total: 0,
+      // 时间选择框
       dataPicker: [],
+      // 列表数据
       tableData: [],
+      // 表头颜色
       headerStyle: {
         background: "#fdfdfd"
       },
+      // 选择的值
+      multipleSelection: [],
+      // 搜索参数
       searchParam: {
         pageNumber: 1,
         pageSize: 15,
@@ -150,17 +161,21 @@ export default {
     };
   },
   created() {
+    // 默认查一个月的
     this.dataPicker = getDatePickerTime(30);
     this.getBookList();
   },
   methods: {
+    // 执行搜索
     search() {
       this.getBookList();
     },
-    getBookList() {
+    // 获取表格数据
+    async getBookList() {
       this.searchParam.startTime = this.dataPicker[0];
       this.searchParam.endTime = this.dataPicker[1];
-      bookApi.getBookList(this.searchParam).then(res => {
+      try {
+        let res = await bookApi.getBookList(this.searchParam);
         if (res.errorCode === 200) {
           this.tableData = res.data.rows;
           this.total = res.data.total;
@@ -170,21 +185,61 @@ export default {
             type: "error"
           });
         }
-      });
+      } catch (error) {
+        this.$message({
+          message: error.errorMsg || "系统错误",
+          type: "error"
+        });
+      }
     },
-    resetSearch(){
-
+    // 重置搜索条件
+    resetSearch() {},
+    // 删除图书
+    async deleteBook() {
+      let params = this.multipleSelection.map(val => val.id);
+      let obj = {};
+      obj.ids = params.join(",");
+      if (params.length === 0) {
+        this.$message({
+          message: "请选择要删除的图书",
+          type: "warn"
+        });
+        return false;
+      }
+      try {
+        let res = await bookApi.deleteBooks(obj);
+        if (res.errorCode === 200) {
+          this.$message({
+            message: "删除成功",
+            type: "success"
+          });
+          this.getBookList();
+        } else {
+          this.$message({
+            message: res.errorMsg,
+            type: "error"
+          });
+        }
+      } catch (error) {
+        this.$message({
+          message: error.errorMsg || "系统错误",
+          type: "error"
+        });
+      }
     },
+    // 图书选择变化
+    handleSelectionChange(val) {
+      this.multipleSelection = val;
+    },
+    // 每页页数变化
     handleSizeChange(val) {
       this.searchParam.pageSize = val;
       this.getBookList();
     },
+    // 页码变化
     handleCurrentChange(val) {
       this.searchParam.pageNumber = val;
       this.getBookList();
-    },
-    timeFormatLocal(val) {
-      return timeFormat(val, true);
     }
   }
 };
@@ -199,11 +254,12 @@ export default {
 
   .el-date-editor
     max-width 360px
+    margin-right 10px
     margin-bottom 10px
 
   .el-input
     max-width 140px
-    margin-left 10px
+    margin-right 10px
     margin-bottom 10px
 
 .table-container
