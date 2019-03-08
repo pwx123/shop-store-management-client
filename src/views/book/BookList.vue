@@ -15,17 +15,20 @@
       <el-input placeholder="书名"
         size="medium"
         v-model="searchParam.name"
-        clearable>
+        clearable
+        @keyup.native.enter="search">
       </el-input>
       <el-input placeholder="作者"
         size="medium"
         v-model="searchParam.author"
-        clearable>
+        clearable
+        @keyup.native.enter="search">
       </el-input>
       <el-input placeholder="出版社"
         size="medium"
         v-model="searchParam.press"
-        clearable>
+        clearable
+        @keyup.native.enter="search">
       </el-input>
     </div>
     <div class="option-button">
@@ -47,10 +50,10 @@
       </el-button>
     </div>
     <div class="table-container">
-      <el-table size="small"
+      <el-table size="mini"
         v-loading="loading"
         :data="tableData"
-        :header-cell-style="headerStyle"
+        :header-cell-style="{background: '#fdfdfd'}"
         :height="460"
         @selection-change="handleSelectionChange"
         border>
@@ -72,6 +75,14 @@
           align="center"
           label="出版社"
           width="180">
+        </el-table-column>
+        <el-table-column align="center"
+          label="分类"
+          width="180">
+          <template slot-scope="scope">
+            <show-tags :classify="scope.row.classify"
+              :classifyMap="classifyMap"></show-tags>
+          </template>
         </el-table-column>
         <el-table-column prop="title"
           align="center"
@@ -118,6 +129,16 @@
           label="修改时间"
           width="160">
         </el-table-column>
+        <el-table-column fixed="right"
+          align="center"
+          label="操作"
+          width="100">
+          <template slot-scope="scope">
+            <el-button type="text"
+              size="small"
+              @click.native="editBook(scope.row)">编辑</el-button>
+          </template>
+        </el-table-column>
       </el-table>
       <el-pagination background
         @size-change="handleSizeChange"
@@ -129,12 +150,92 @@
         :total="total">
       </el-pagination>
     </div>
+    <el-dialog title="编辑图书"
+      top="50px"
+      width="500px"
+      :visible.sync="editFormDialog">
+      <el-form :model="editData">
+        <el-form-item label="书名"
+          label-width="80px">
+          <el-input v-model="editData.name"
+            autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="作者"
+          label-width="80px">
+          <el-input v-model="editData.author"
+            autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="出版社"
+          label-width="80px">
+          <el-input v-model="editData.press"
+            autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="分类"
+          label-width="80px">
+          <el-select v-model="editData.classify"
+            multiple
+            placeholder="请选择">
+            <el-option v-for="item in classifyMap"
+              :key="item"
+              :label="classifyMap[item]"
+              :value="item">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="标题"
+          label-width="80px">
+          <el-input v-model="editData.title"
+            autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="描述"
+          label-width="80px">
+          <el-input type="textarea"
+            v-model="editData.description"
+            resize="none"
+            autocomplete="off"
+            :rows="3"></el-input>
+        </el-form-item>
+        <el-form-item label="价格"
+          label-width="80px">
+          <el-input v-model="editData.price"
+            type="number"
+            step="0.01"
+            autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="折后价"
+          label-width="80px">
+          <el-input v-model="editData.salePrice"
+            type="number"
+            step="0.01"
+            autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="是否在售"
+          label-width="80px">
+          <el-switch :value="editData.isSell === 1"></el-switch>
+        </el-form-item>
+        <el-form-item label="图片"
+          label-width="80px">
+          <el-button type="text"
+            size="small"
+            @click.native="editBook(scope.row)">查看图片</el-button>
+        </el-form-item>
+      </el-form>
+      <div slot="footer"
+        class="dialog-footer">
+        <el-button @click="editFormDialog = false">取 消</el-button>
+        <el-button type="primary"
+          @click="editFormDialog = false">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import * as bookApi from "./../../api/bookList";
 import { timeFormat, getDatePickerTime, handleError } from "./../../util/util";
+
+import showTags from "./../../components/ShowTags";
+
 export default {
   data() {
     return {
@@ -144,14 +245,15 @@ export default {
       dataPicker: [],
       // 列表数据
       tableData: [],
-      // 表头颜色
-      headerStyle: {
-        background: "#fdfdfd"
-      },
+      editData: {},
       // 加载中
       loading: false,
+      // 编辑弹框
+      editFormDialog: false,
       // 选择的值
       multipleSelection: [],
+      // 分类映射
+      classifyMap: {},
       // 搜索参数
       searchParam: {
         pageNumber: 1,
@@ -168,6 +270,7 @@ export default {
     // 默认查一个月的
     this.dataPicker = getDatePickerTime(30);
     this.getBookList();
+    this.getAllClassifyFun();
   },
   methods: {
     // 执行搜索
@@ -185,6 +288,30 @@ export default {
         if (res.errorCode === 200) {
           this.tableData = res.data.rows;
           this.total = res.data.total;
+        } else {
+          this.$message({
+            message: res.errorMsg,
+            type: "error"
+          });
+        }
+      } catch (error) {
+        this.loading = false;
+        handleError(error);
+      }
+    },
+    // 获取全部分类
+    async getAllClassifyFun() {
+      try {
+        this.loading = true;
+        let res = await bookApi.getAllClassify();
+        this.loading = false;
+        if (res.errorCode === 200) {
+          let data = res.data;
+          let obj = {};
+          for (let i = 0, len = data.length; i < len; i++) {
+            obj[data[i].id] = data[i].name;
+          }
+          this.classifyMap = obj;
         } else {
           this.$message({
             message: res.errorMsg,
@@ -222,24 +349,37 @@ export default {
         });
         return false;
       }
-      try {
-        let res = await bookApi.deleteBooks(obj);
-        if (res.errorCode === 200) {
-          this.$message({
-            message: "删除成功",
-            type: "success"
-          });
-          this.searchParam.pageNumber = 1;
-          this.getBookList();
-        } else {
-          this.$message({
-            message: res.errorMsg,
-            type: "error"
-          });
-        }
-      } catch (error) {
-        handleError(error);
-      }
+      this.$confirm(`确实删除所选图书吗？`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(async () => {
+          try {
+            let res = await bookApi.deleteBooks(obj);
+            if (res.errorCode === 200) {
+              this.$message({
+                message: "删除成功",
+                type: "success"
+              });
+              this.searchParam.pageNumber = 1;
+              this.getBookList();
+            } else {
+              this.$message({
+                message: res.errorMsg,
+                type: "error"
+              });
+            }
+          } catch (error) {
+            handleError(error);
+          }
+        })
+        .catch(() => {});
+    },
+    // 编辑图书
+    editBook(row) {
+      this.editData = Object.assign({}, row);
+      this.editFormDialog = true;
     },
     // 图书选择变化
     handleSelectionChange(val) {
@@ -255,6 +395,9 @@ export default {
       this.searchParam.pageNumber = val;
       this.getBookList();
     }
+  },
+  components: {
+    showTags
   }
 };
 </script>
@@ -281,4 +424,9 @@ export default {
 
   .el-pagination
     margin-top 20px
+
+.el-dialog__body .el-form
+  height 400px
+  padding 10px
+  overflow-y scroll
 </style>

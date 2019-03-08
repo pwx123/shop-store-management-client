@@ -187,7 +187,11 @@ export default {
         height 100%
 
         .el-menu .el-menu-item
-          font-weight normal
+          background-color #f7f7f7
+
+          &:hover, &:focus
+            outline 0
+            background-color #ecf5ff
 
     .content-container
       flex 1

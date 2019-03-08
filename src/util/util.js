@@ -116,3 +116,7 @@ export function handleError(error) {
     type: 'error'
   })
 }
+
+export function tirmAll(str) {
+  return str.replace(/\s+/g, '');
+}
