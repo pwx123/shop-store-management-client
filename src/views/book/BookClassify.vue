@@ -13,6 +13,11 @@
         @click.native="filterByName">
         搜索
       </el-button>
+      <el-button type="success"
+        size="medium"
+        @click.native="addClassifyFun('form')">
+        添加
+      </el-button>
     </div>
     <div class="classify-cards"
       v-loading="loading">
@@ -26,11 +31,38 @@
           @click.native="deleteClassify(item)">删除</el-button>
       </el-card>
     </div>
+    <el-dialog title="添加分类"
+      width="400px"
+      :visible.sync="dialogVisible"
+      @close="closeDialog">
+      <el-form ref="form"
+        :model="addClassifyValue"
+        :rules="addClassifyValidate">
+        <el-form-item prop="classifyName">
+          <el-input v-model.trim="addClassifyValue.classifyName"
+            placeholder="请输入分类名称"
+            maxlength="100"
+            autocomplete="off"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer"
+        class="dialog-footer">
+        <el-button size="small"
+          @click="dialogVisible = false">取 消</el-button>
+        <el-button size="small"
+          type="primary"
+          @click="submitAddClassify('form')">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { getAllClassify, deleteClassify } from "./../../api/bookList";
+import {
+  getAllClassify,
+  deleteClassify,
+  addClassify
+} from "./../../api/bookList";
 import { handleError, tirmAll } from "./../../util/util";
 
 export default {
@@ -39,7 +71,16 @@ export default {
       filterName: "",
       classifyData: [],
       filterDate: [],
-      loading: false
+      loading: false,
+      dialogVisible: false,
+      addClassifyValue: {
+        classifyName: ""
+      },
+      addClassifyValidate: {
+        classifyName: [
+          { required: true, message: "请输入分类名称", trigger: "blur" }
+        ]
+      }
     };
   },
   created() {
@@ -108,6 +149,44 @@ export default {
           return item.name.indexOf(this.filterName) !== -1;
         });
       }
+    },
+    // 添加分类
+    addClassifyFun(formName) {
+      this.addClassifyValue = {
+        classifyName: ""
+      };
+      this.dialogVisible = true;
+    },
+    // 添加分类提交
+    submitAddClassify(formName) {
+      this.$refs[formName].validate(async valid => {
+        if (valid) {
+          try {
+            let res = await addClassify({
+              classifyName: this.addClassifyValue.classifyName
+            });
+            if (res.errorCode === 200) {
+              this.$message({
+                message: "添加成功",
+                type: "success"
+              });
+              this.dialogVisible = false;
+              this.getAllClassifyFun();
+            } else {
+              this.$message({
+                message: res.errorMsg,
+                type: "error"
+              });
+            }
+          } catch (error) {
+            handleError(error);
+          }
+        }
+      });
+    },
+    // 关闭弹框
+    closeDialog() {
+      this.$refs["form"].clearValidate();
     }
   }
 };

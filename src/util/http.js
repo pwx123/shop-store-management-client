@@ -10,7 +10,7 @@ if (process.env.NODE_ENV == "development") {
 }
 
 // 超时时间
-axios.defaults.timeout = 3000;
+axios.defaults.timeout = 10000;
 axios.defaults.withCredentials = true;
 // 响应拦截
 axios.interceptors.response.use(
@@ -45,12 +45,12 @@ axios.interceptors.response.use(
   }
 );
 
-export function get(url, params) {
+export function get(url, params, config) {
   return new Promise((resolve, reject) => {
     axios
       .get(url, {
         params: params
-      })
+      }, config)
       .then(res => {
         resolve(res.data);
       })
@@ -60,10 +60,10 @@ export function get(url, params) {
   });
 }
 
-export function post(url, params) {
+export function post(url, params, config) {
   return new Promise((resolve, reject) => {
     axios
-      .post(url, params)
+      .post(url, params, config)
       .then(res => {
         resolve(res.data);
       })

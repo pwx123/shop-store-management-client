@@ -4,6 +4,8 @@ import {
 
 export const mobileReg = /^1[3456789]\d{9}$/;
 export const pwdReg = /^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{8,16}$/;
+export const decimalReg = /^\d+(\.\d{0,2})?$/
+
 
 export function emailCheck(email) {
   var emailreg = /^([a-zA-Z0-9]+[_|.]?)*[a-zA-Z0-9]+@([a-zA-Z0-9]+[_|.]?)*[a-zA-Z0-9]+\.[a-zA-Z]{2,3}$/;
@@ -117,6 +119,13 @@ export function handleError(error) {
   })
 }
 
+/**
+ * 去除空格
+ *
+ * @export
+ * @param {*} str
+ * @returns
+ */
 export function tirmAll(str) {
   return str.replace(/\s+/g, '');
 }

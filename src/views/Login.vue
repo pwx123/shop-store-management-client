@@ -106,13 +106,13 @@ export default {
                 this.$message({
                   message: "登陆成功",
                   type: "success",
-                  duration: 1000,
-                  onClose: () => {
-                    this.$router.push({
-                      path: path
-                    });
-                  }
+                  duration: 1000
                 });
+                setTimeout(() => {
+                  this.$router.push({
+                    path: path
+                  });
+                }, 1000);
               } else {
                 this.$message({
                   message: logRes.errorMsg,

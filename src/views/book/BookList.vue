@@ -48,6 +48,23 @@
         @click.native="deleteBook">
         删除
       </el-button>
+      <el-button type="success"
+        size="medium"
+        @click.native="downloadFile">
+        模板下载
+      </el-button>
+      <el-upload class="form-upload-excel"
+        ref="uploadExcel"
+        name="bookList"
+        action="#"
+        accept=".xlsx,.xls"
+        :http-request="uploadExcelFile"
+        :show-file-list="false">
+        <el-button slot="trigger"
+          size="medium"
+          type="success"
+          :loading="uploadExcelLoading">批量上传</el-button>
+      </el-upload>
     </div>
     <div class="table-container">
       <el-table size="mini"
@@ -64,17 +81,27 @@
         <el-table-column prop="name"
           align="center"
           label="书名"
-          width="180">
+          width="160">
         </el-table-column>
         <el-table-column prop="author"
           align="center"
           label="作者"
-          width="180">
+          width="140">
         </el-table-column>
         <el-table-column prop="press"
           align="center"
           label="出版社"
           width="180">
+        </el-table-column>
+        <el-table-column align="center"
+          label="是否在售"
+          width="100">
+          <template slot-scope="scope">
+            <span v-if="scope.row.isSell == 1"
+              class="status-success">是</span>
+            <span v-else
+              class="status-failed">否</span>
+          </template>
         </el-table-column>
         <el-table-column align="center"
           label="分类"
@@ -97,27 +124,28 @@
         <el-table-column prop="stock"
           align="center"
           label="库存"
-          width="180">
+          width="100">
         </el-table-column>
         <el-table-column prop="price"
           align="center"
           label="价格"
-          width="180">
+          width="100">
         </el-table-column>
         <el-table-column prop="salePrice"
           align="center"
           label="折后价"
-          width="180">
+          width="100">
         </el-table-column>
-        <el-table-column prop="isSell"
-          align="center"
-          label="是否在售"
-          width="180">
-        </el-table-column>
-        <el-table-column prop="address"
-          align="center"
+        <el-table-column align="center"
           label="图片"
-          width="180">
+          width="100">
+          <template slot-scope="scope">
+            <el-button v-if="scope.row.imageUrl"
+              type="text"
+              size="small"
+              @click.native="showImgDialogFun(scope.row.imageUrl)">查看图片</el-button>
+            <span v-else>---</span>
+          </template>
         </el-table-column>
         <el-table-column prop="createdAt"
           align="center"
@@ -153,21 +181,29 @@
     <el-dialog title="编辑图书"
       top="50px"
       width="500px"
-      :visible.sync="editFormDialog">
-      <el-form :model="editData">
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :visible.sync="showEditFormDialog"
+      @close="closeDialog">
+      <el-form ref="editDataForm"
+        :model="editData"
+        :rules="editDataValidate">
         <el-form-item label="书名"
+          prop="name"
           label-width="80px">
-          <el-input v-model="editData.name"
+          <el-input v-model.trim="editData.name"
             autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="作者"
+          prop="author"
           label-width="80px">
-          <el-input v-model="editData.author"
+          <el-input v-model.trim="editData.author"
             autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="出版社"
+          prop="press"
           label-width="80px">
-          <el-input v-model="editData.press"
+          <el-input v-model.trim="editData.press"
             autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="分类"
@@ -175,56 +211,91 @@
           <el-select v-model="editData.classify"
             multiple
             placeholder="请选择">
-            <el-option v-for="item in classifyMap"
-              :key="item"
-              :label="classifyMap[item]"
-              :value="item">
+            <el-option v-for="item in classify"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id">
             </el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="标题"
+          prop="title"
           label-width="80px">
-          <el-input v-model="editData.title"
+          <el-input v-model.trim="editData.title"
             autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="描述"
+          prop="description"
           label-width="80px">
           <el-input type="textarea"
-            v-model="editData.description"
+            v-model.trim="editData.description"
             resize="none"
             autocomplete="off"
             :rows="3"></el-input>
         </el-form-item>
         <el-form-item label="价格"
+          prop="price"
           label-width="80px">
-          <el-input v-model="editData.price"
+          <el-input v-model.trim="editData.price"
             type="number"
             step="0.01"
             autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="折后价"
+          prop="salePrice"
           label-width="80px">
-          <el-input v-model="editData.salePrice"
+          <el-input v-model.trim="editData.salePrice"
             type="number"
             step="0.01"
             autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="是否在售"
           label-width="80px">
-          <el-switch :value="editData.isSell === 1"></el-switch>
+          <el-switch v-model="editData.isSell"></el-switch>
         </el-form-item>
         <el-form-item label="图片"
           label-width="80px">
-          <el-button type="text"
+          <el-button v-if="editData.imageUrl"
+            type="text"
             size="small"
-            @click.native="editBook(scope.row)">查看图片</el-button>
+            @click.native="showImgDialogFun(editData.imageUrl)">查看图片</el-button>
+          <el-upload class="form-upload"
+            ref="upload"
+            action="#"
+            name="bookImg"
+            accept=".png,.jpg"
+            :show-file-list="false"
+            :auto-upload="false"
+            :on-change="handleFileChange">
+            <el-button slot="trigger"
+              size="small"
+              type="primary">{{editData.imageUrl ? '更换':'上传'}}图片</el-button>
+            <div slot="tip"
+              class="el-upload__tip">只能上传jpg/png文件，且不超过2M</div>
+            <div class="preview"
+              @click="showImgDialogFun(previewBase64, true)"
+              v-if="previewBase64">
+              <img :src="previewBase64"
+                title="点击查看大图">
+            </div>
+          </el-upload>
         </el-form-item>
       </el-form>
       <div slot="footer"
         class="dialog-footer">
-        <el-button @click="editFormDialog = false">取 消</el-button>
+        <el-button size="small"
+          @click="showEditFormDialog = false">取 消</el-button>
         <el-button type="primary"
-          @click="editFormDialog = false">确 定</el-button>
+          size="small"
+          @click="submitEditBook('editDataForm')">确 定</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog top="50px"
+      width="700px"
+      :visible.sync="showImgDialog">
+      <div class="dialog-img">
+        <img :src="showImageUrl"
+          alt="图片详情">
       </div>
     </el-dialog>
   </div>
@@ -232,7 +303,12 @@
 
 <script>
 import * as bookApi from "./../../api/bookList";
-import { timeFormat, getDatePickerTime, handleError } from "./../../util/util";
+import {
+  timeFormat,
+  getDatePickerTime,
+  handleError,
+  decimalReg
+} from "./../../util/util";
 
 import showTags from "./../../components/ShowTags";
 
@@ -245,15 +321,38 @@ export default {
       dataPicker: [],
       // 列表数据
       tableData: [],
+      // 编辑数据
       editData: {},
+      // 提交校验规则
+      editDataValidate: {
+        name: [{ required: true, message: "请输入书名", trigger: "blur" }],
+        author: [{ required: true, message: "请输入作者", trigger: "blur" }],
+        press: [{ required: true, message: "请输入出版社", trigger: "blur" }],
+        title: [{ required: true, message: "请输入标题", trigger: "blur" }],
+        description: [
+          { required: true, message: "请输入描述", trigger: "blur" }
+        ],
+        price: [{ validator: this.decimalRegFun, trigger: "blur" }],
+        salePrice: [{ validator: this.decimalRegFun, trigger: "blur" }]
+      },
       // 加载中
       loading: false,
       // 编辑弹框
-      editFormDialog: false,
+      showEditFormDialog: false,
       // 选择的值
       multipleSelection: [],
-      // 分类映射
-      classifyMap: {},
+      // 分类
+      classify: [],
+      // 图片预览base64
+      previewBase64: "",
+      // file文件
+      uploadFile: "",
+      // 展示查看大图
+      showImgDialog: false,
+      // 大图Url
+      showImageUrl: "",
+      // 上传excel按钮loading
+      uploadExcelLoading: false,
       // 搜索参数
       searchParam: {
         pageNumber: 1,
@@ -265,6 +364,16 @@ export default {
         press: ""
       }
     };
+  },
+  computed: {
+    // 分类转换为 map
+    classifyMap() {
+      let obj = {};
+      for (let i = 0, len = this.classify.length; i < len; i++) {
+        obj[this.classify[i].id] = this.classify[i].name;
+      }
+      return obj;
+    }
   },
   created() {
     // 默认查一个月的
@@ -306,12 +415,7 @@ export default {
         let res = await bookApi.getAllClassify();
         this.loading = false;
         if (res.errorCode === 200) {
-          let data = res.data;
-          let obj = {};
-          for (let i = 0, len = data.length; i < len; i++) {
-            obj[data[i].id] = data[i].name;
-          }
-          this.classifyMap = obj;
+          this.classify = res.data;
         } else {
           this.$message({
             message: res.errorMsg,
@@ -378,8 +482,165 @@ export default {
     },
     // 编辑图书
     editBook(row) {
+      this.uploadFile = "";
       this.editData = Object.assign({}, row);
-      this.editFormDialog = true;
+      this.previewBase64 = "";
+      if (row.classify) {
+        this.editData.classify = row.classify
+          .split(",")
+          .map(item => parseInt(item));
+      } else {
+        this.editData.classify = [];
+      }
+      this.editData.isSell = row.isSell === 1;
+      this.showEditFormDialog = true;
+    },
+    // 提交更改
+    submitEditBook(formName) {
+      this.$refs[formName].validate(async valid => {
+        if (valid) {
+          let formData = new FormData();
+          for (let key in this.editData) {
+            switch (key) {
+              case "classify":
+                formData.append(key, this.editData[key].join(","));
+                break;
+              case "isSell":
+                formData.append(key, this.editData[key] ? 1 : 0);
+                break;
+              case "imageUrl":
+                formData.append(key, this.uploadFile);
+                break;
+              case "createdAt":
+              case "updatedAt":
+              case "stock":
+                break;
+              default:
+                formData.append(key, this.editData[key]);
+            }
+          }
+          let config = {
+            headers: { "Content-Type": "multipart/form-data" }
+          };
+          try {
+            let res = await bookApi.updateBook(formData, config);
+            if (res.errorCode === 200) {
+              this.$message({
+                message: "提交成功",
+                type: "success"
+              });
+              this.showEditFormDialog = false;
+              this.getBookList();
+            } else {
+              this.$message({
+                message: res.errorMsg,
+                type: "error"
+              });
+            }
+          } catch (error) {
+            handleError(error);
+          }
+        }
+      });
+    },
+    // 选择图片
+    handleFileChange(file) {
+      if (file.raw.type !== "image/jpeg" && file.raw.type !== "image/png") {
+        this.$message({
+          message: "格式不支持",
+          type: "error"
+        });
+        return false;
+      }
+      if (file.raw.size > 1024 * 1024 * 2) {
+        this.$message({
+          message: "大小不能超过2M",
+          type: "error"
+        });
+        return false;
+      }
+      let reader = new FileReader();
+      reader.readAsDataURL(file.raw);
+      reader.onload = e => {
+        this.previewBase64 = e.currentTarget.result;
+        this.uploadFile = file.raw;
+      };
+    },
+    // 上传excel
+    async uploadExcelFile(params) {
+      let reg = /.*\.(xlsx|xls)$/;
+      if (!reg.test(params.file.name)) {
+        this.$message({
+          message: "格式不支持",
+          type: "error"
+        });
+        return false;
+      }
+      if (params.file.size > 1024 * 1024 * 20) {
+        this.$message({
+          message: "大小不能超过20M",
+          type: "error"
+        });
+        return false;
+      }
+      let data = new FormData();
+      data.append("excel", params.file);
+      let config = {
+        headers: { "Content-Type": "multipart/form-data" }
+      };
+      try {
+        this.uploadExcelLoading = true;
+        let res = await bookApi.uploadExcel(data, config);
+        this.uploadExcelLoading = false;
+        if (res.errorCode === 200) {
+          this.$message({
+            message: "提交成功",
+            type: "success"
+          });
+          this.showEditFormDialog = false;
+          this.getBookList();
+        } else {
+          this.$alert(res.errorMsg, "提示", {
+            dangerouslyUseHTMLString: true
+          });
+        }
+      } catch (error) {
+        this.uploadExcelLoading = false;
+        handleError(error);
+      }
+    },
+    // 下载文件
+    async downloadFile() {
+      var params = {};
+      var config = {
+        responseType: "blob",
+        headers: { filename: "utf-8" }
+      };
+      try {
+        let data = await bookApi.downloadBookTemplate(params, config);
+        let blob = new Blob([data], {
+          type: "application/zip"
+        });
+        let objectUrl = window.URL.createObjectURL(blob);
+        let downloadElement = document.createElement("a");
+        downloadElement.href = objectUrl;
+        downloadElement.download = `上传模板.zip`;
+        document.body.appendChild(downloadElement);
+        downloadElement.click();
+        document.body.removeChild(downloadElement);
+        window.URL.revokeObjectURL(objectUrl);
+      } catch (error) {
+        handleError(error);
+      }
+    },
+    // 查看大图
+    showImgDialogFun(imageUrl, isBase64) {
+      if (isBase64) {
+        this.showImageUrl = imageUrl;
+      } else {
+        this.showImageUrl = imageUrl + this.getTimeUrl();
+      }
+      this.showImgDialog = true;
     },
     // 图书选择变化
     handleSelectionChange(val) {
@@ -394,6 +655,22 @@ export default {
     handleCurrentChange(val) {
       this.searchParam.pageNumber = val;
       this.getBookList();
+    },
+    // 关闭弹框
+    closeDialog() {
+      this.$refs["editDataForm"].clearValidate();
+    },
+    // url加上时间参数
+    getTimeUrl() {
+      return `?t=${new Date().getTime()}`;
+    },
+    // 小数校验
+    decimalRegFun(rule, value, callback) {
+      if (!decimalReg.test(value)) {
+        callback(new Error("请输入正确的数字,最多两位小数"));
+      } else {
+        callback();
+      }
     }
   },
   components: {
@@ -404,6 +681,7 @@ export default {
 
 <style lang="stylus" scoped>
 @import './../../styl/variables.styl'
+@import './../../styl/common.styl'
 
 .filter-search
   display flex
@@ -419,14 +697,44 @@ export default {
     margin-right 10px
     margin-bottom 10px
 
+.form-upload-excel
+  display inline-block
+  margin-left 10px
+
 .table-container
   margin-top 20px
 
   .el-pagination
     margin-top 20px
 
-.el-dialog__body .el-form
-  height 400px
+.el-dialog__body
+  .el-form
+    height 400px
+    padding 10px
+    overflow-y scroll
+
+    .el-select
+      width 100%
+
+  .preview
+    display flex
+    justify-content center
+    align-items center
+    padding 10px
+    margin-top 6px
+    border 1px dashed #999
+    border-radius 6px
+
+    img
+      cursor pointer
+      max-width 300px
+
+.dialog-img
+  display flex
+  justify-content center
+  align-items center
   padding 10px
-  overflow-y scroll
+
+  img
+    max-width 600px
 </style>
