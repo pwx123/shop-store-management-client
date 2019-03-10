@@ -48,6 +48,11 @@
         @click.native="deleteBook">
         删除
       </el-button>
+      <el-button type="primary"
+        size="medium"
+        @click.native="addBook">
+        新增
+      </el-button>
       <el-button type="success"
         size="medium"
         @click.native="downloadFile">
@@ -178,7 +183,7 @@
         :total="total">
       </el-pagination>
     </div>
-    <el-dialog title="编辑图书"
+    <el-dialog :title="isEdit ? '编辑图书' : '新增图书'"
       top="50px"
       width="500px"
       :close-on-click-modal="false"
@@ -187,7 +192,8 @@
       @close="closeDialog">
       <el-form ref="editDataForm"
         :model="editData"
-        :rules="editDataValidate">
+        :rules="editDataValidate"
+        :hide-required-asterisk="false">
         <el-form-item label="书名"
           prop="name"
           label-width="80px">
@@ -232,6 +238,20 @@
             resize="none"
             autocomplete="off"
             :rows="3"></el-input>
+        </el-form-item>
+        <el-form-item label="库存量"
+          prop="stock"
+          label-width="80px">
+          <span>{{editData.stock + editStock}}</span>
+          <el-tooltip effect="dark"
+            content="实际更新数量已提交后为准"
+            placement="top">
+            <i class="el-icon-info"></i>
+          </el-tooltip>
+          <el-input-number v-model="editStock"
+            size="small"
+            :min="-editData.stock"
+            :step="1"></el-input-number>
         </el-form-item>
         <el-form-item label="价格"
           prop="price"
@@ -323,6 +343,8 @@ export default {
       tableData: [],
       // 编辑数据
       editData: {},
+      // 是否是编辑图书
+      isEdit: true,
       // 提交校验规则
       editDataValidate: {
         name: [{ required: true, message: "请输入书名", trigger: "blur" }],
@@ -332,8 +354,12 @@ export default {
         description: [
           { required: true, message: "请输入描述", trigger: "blur" }
         ],
-        price: [{ validator: this.decimalRegFun, trigger: "blur" }],
-        salePrice: [{ validator: this.decimalRegFun, trigger: "blur" }]
+        price: [
+          { required: true, validator: this.decimalRegFun, trigger: "blur" }
+        ],
+        salePrice: [
+          { required: true, validator: this.decimalRegFun, trigger: "blur" }
+        ]
       },
       // 加载中
       loading: false,
@@ -351,6 +377,8 @@ export default {
       showImgDialog: false,
       // 大图Url
       showImageUrl: "",
+      // 库存量修改值
+      editStock: 0,
       // 上传excel按钮loading
       uploadExcelLoading: false,
       // 搜索参数
@@ -482,7 +510,9 @@ export default {
     },
     // 编辑图书
     editBook(row) {
+      this.isEdit = true;
       this.uploadFile = "";
+      this.editStock = 0;
       this.editData = Object.assign({}, row);
       this.previewBase64 = "";
       if (row.classify) {
@@ -513,7 +543,9 @@ export default {
                 break;
               case "createdAt":
               case "updatedAt":
+                break;
               case "stock":
+                formData.append(key, this.editStock);
                 break;
               default:
                 formData.append(key, this.editData[key]);
@@ -523,7 +555,12 @@ export default {
             headers: { "Content-Type": "multipart/form-data" }
           };
           try {
-            let res = await bookApi.updateBook(formData, config);
+            let res = "";
+            if (this.isEdit) {
+              res = await bookApi.updateBook(formData, config);
+            } else {
+              res = await bookApi.insertBook(formData, config);
+            }
             if (res.errorCode === 200) {
               this.$message({
                 message: "提交成功",
@@ -609,7 +646,7 @@ export default {
         handleError(error);
       }
     },
-    // 下载文件
+    // 下载模板zip
     async downloadFile() {
       var params = {};
       var config = {
@@ -632,6 +669,27 @@ export default {
       } catch (error) {
         handleError(error);
       }
+    },
+    // 新增图书
+    addBook() {
+      this.isEdit = false;
+      this.uploadFile = "";
+      this.previewBase64 = "";
+      this.editStock = 0;
+      this.editData = {
+        name: "",
+        author: "",
+        press: "",
+        classify: [],
+        title: "",
+        description: "",
+        stock: "",
+        price: "",
+        salePrice: "",
+        isSell: true,
+        imageUrl: ""
+      };
+      this.showEditFormDialog = true;
     },
     // 查看大图
     showImgDialogFun(imageUrl, isBase64) {
@@ -715,6 +773,9 @@ export default {
 
     .el-select
       width 100%
+
+  .el-input-number
+    margin-left 10px
 
   .preview
     display flex
