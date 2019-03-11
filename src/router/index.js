@@ -10,10 +10,11 @@ const Home = () => import( /* webpackChunkName: "Home" */ '@/views/home/Home');
 const Index = () => import( /* webpackChunkName: "Index" */ '@/views/index/Index');
 const OrderList = () => import( /* webpackChunkName: "OrderList" */ '@/views/order/OrderList');
 const UserList = () => import( /* webpackChunkName: "UserList" */ '@/views/user/UserList');
+const Address = () => import( /* webpackChunkName: "Address" */ '@/views/user/Address');
 const BookList = () => import( /* webpackChunkName: "BookList" */ '@/views/book/BookList');
 const BookClassify = () => import( /* webpackChunkName: "BookClassify" */ '@/views/book/BookClassify');
-
-
+const AdminInfo = () => import( /* webpackChunkName: "AdminInfo" */ '@/views/system/AdminInfo');
+const ShopManagement = () => import( /* webpackChunkName: "ShopManagement" */ '@/views/system/ShopManagement');
 
 Vue.use(Router);
 
@@ -32,6 +33,11 @@ export default new Router({
     },
     {
       path: '/',
+      redirect: 'index',
+      hidden: true
+    },
+    {
+      path: '/index',
       component: Home,
       isSingle: true,
       iconCls: 'iconfont icon-home',
@@ -42,58 +48,79 @@ export default new Router({
       }]
     },
     {
-      path: '/',
+      path: '/index',
       component: Home,
       name: '订单管理',
       iconCls: 'iconfont icon-emaxcitygerenxinxitubiaoji03',
       children: [{
-        path: '/orderList',
+        path: '/index/orderList',
         component: OrderList,
         name: '订单列表'
       }]
     },
     {
-      path: '/',
+      path: '/index',
       component: Home,
       name: '图书管理',
       iconCls: 'iconfont icon-book',
       children: [{
-          path: '/bookList',
+          path: '/index/bookList',
           component: BookList,
           name: '图书列表'
         },
         {
-          path: '/bookClassify',
+          path: '/index/bookClassify',
           component: BookClassify,
           name: '分类管理'
         }
       ]
     },
     {
-      path: '/',
+      path: '/index',
       component: Home,
       name: '用户管理',
       iconCls: 'iconfont icon-icon_user_management',
       children: [{
-        path: '/userList',
-        component: UserList,
-        name: '用户列表'
+          path: '/index/userList',
+          component: UserList,
+          name: '用户列表'
+        },
+        {
+          path: '/index/address',
+          component: Address,
+          name: '收获地址管理'
+        }
+      ]
+    },
+    {
+      path: '/index',
+      component: Home,
+      name: '系统管理',
+      iconCls: 'iconfont icon-setting',
+      children: [{
+        path: '/index/adminInfo',
+        component: AdminInfo,
+        name: '信息修改'
+      }, {
+        path: '/index/shopManagement',
+        component: ShopManagement,
+        name: '店铺管理'
       }]
     },
     {
-      path: '/',
+      path: '/index',
       component: Home,
       hidden: true,
       children: [{
-        path: '/forbidden',
+        path: '/index/forbidden',
         component: Forbidden,
         name: 'forbidden'
       }, {
-        path: '/serverError',
+        path: '/index/serverError',
         component: ServerError,
         name: 'serverError'
       }, {
-        path: '/*',
+        path: '/index/*',
         component: NotFound,
         name: '404'
       }]
@@ -101,9 +128,8 @@ export default new Router({
     {
       path: '*',
       hidden: true,
-      redirect: {
-        path: '/404'
-      }
+      component: NotFound,
+      name: '404'
     }
   ]
 })

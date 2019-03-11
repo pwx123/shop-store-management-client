@@ -1,4 +1,8 @@
 const state = {
-  userinfo: {}
+  userInfo: {
+    name: "",
+    nickName: "",
+    avatar: ""
+  }
 };
 export default state;

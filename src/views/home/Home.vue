@@ -9,11 +9,13 @@
         <el-dropdown trigger="hover"
           size="medium">
           <span class="el-dropdown-link userinfo-inner">
-            <img :src="sysUserAvatar" />
-            {{sysUserName}}
+            <span>{{userInfo.nickname || userInfo.name}}</span>
+            <img :src="userInfo.avatarUrl || defaultAvatar" />
           </span>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item @click.native="logout">退出登录</el-dropdown-item>
+            <el-dropdown-item @click.native="linkToAdminInfo">个人信息</el-dropdown-item>
+            <el-dropdown-item @click.native="logout"
+              divided>退出登录</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
       </div>
@@ -56,8 +58,7 @@
 </template>
 
 <script>
-import { mapMutations } from "vuex";
-import { getUserInfo } from "./../../api/common";
+import { mapActions, mapGetters } from "vuex";
 import { logout } from "./../../api/login";
 import { handleError } from "./../../util/util";
 
@@ -65,53 +66,39 @@ export default {
   data() {
     return {
       sysName: "网上书店管理系统",
-      sysUserName: "",
-      sysUserAvatar: "",
-      form: {
-        name: "",
-        region: "",
-        date1: "",
-        date2: "",
-        delivery: false,
-        type: [],
-        resource: "",
-        desc: ""
-      }
+      defaultAvatar: this.$basePath + "/images/admin/default.png"
     };
   },
   created() {
-    this.getLoginUserInfo();
+    this.getUserInfoFun();
   },
   computed: {
     navRouter() {
       return this.$router.options.routes.filter(router => {
         return !router.hidden;
       });
-    }
+    },
+    ...mapGetters(["userInfo"])
   },
   methods: {
-    async getLoginUserInfo() {
+    async getUserInfoFun() {
       try {
-        var res = await getUserInfo();
-        if (res.errorCode === 200) {
-          this.setUserInfo(res.data);
-        } else {
-          this.$message({
-            message: res.errorMsg,
-            type: "error"
-          });
-        }
+        await this.getUserInfoActions();
       } catch (error) {
         handleError(error);
       }
     },
-    logout: function() {
+    // 跳转个人信息页面
+    linkToAdminInfo() {
+      this.$router.push("/index/adminInfo");
+    },
+    // 退出登录
+    logout() {
       this.$confirm("确认退出吗?", "提示", {})
         .then(async () => {
           try {
             let res = await logout();
             if (res.errorCode === 200) {
-              this.setUserInfo({});
               this.$router.push("/login");
             } else {
               this.$message({
@@ -125,11 +112,8 @@ export default {
         })
         .catch(() => {});
     },
-    ...mapMutations({
-      setUserInfo: "SET_USERINFO"
-    })
-  },
-  mounted() {}
+    ...mapActions(["getUserInfoActions"])
+  }
 };
 </script>
 
@@ -155,12 +139,19 @@ export default {
       .userinfo-inner
         cursor pointer
         color #fff
+        display flex
+        justify-content center
+        align-items center
+        height 60px
 
         img
           width 40px
           height 40px
-          border-radius 20px
-          margin-top 10px
+          border-radius 50%
+          border 1px solid #94bcf5
+
+        span
+          margin-right 10px
 
     .logo
       height 60px
@@ -186,12 +177,15 @@ export default {
       & > .el-menu
         height 100%
 
-        .el-menu .el-menu-item
-          background-color #f7f7f7
+        .el-menu
+          padding-left 10px
 
-          &:hover, &:focus
-            outline 0
-            background-color #ecf5ff
+          .el-menu-item
+            background-color #fafafa
+
+            &:hover, &:focus
+              outline 0
+              background-color #ecf5ff
 
     .content-container
       flex 1

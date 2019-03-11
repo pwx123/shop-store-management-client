@@ -1,6 +1,6 @@
 const getters = {
-  userinfo: state => {
-    return state.userinfo;
+  userInfo: state => {
+    return state.userInfo;
   }
 };
 export default getters;

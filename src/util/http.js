@@ -37,7 +37,7 @@ axios.interceptors.response.use(
           break;
         case 403:
           router.push({
-            path: "/forbidden"
+            path: "/index/forbidden"
           });
       }
     }

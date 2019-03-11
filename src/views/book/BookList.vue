@@ -10,59 +10,45 @@
         value-format="yyyy-MM-dd HH:mm:ss"
         :editable="false"
         :clearable="false"
-        :default-time="['00:00:00', '23:59:59']">
-      </el-date-picker>
+        :default-time="['00:00:00', '23:59:59']"></el-date-picker>
       <el-input placeholder="书名"
         size="medium"
         v-model="searchParam.name"
         clearable
-        @keyup.native.enter="search">
-      </el-input>
+        @keyup.native.enter="search"></el-input>
       <el-input placeholder="作者"
         size="medium"
         v-model="searchParam.author"
         clearable
-        @keyup.native.enter="search">
-      </el-input>
+        @keyup.native.enter="search"></el-input>
       <el-input placeholder="出版社"
         size="medium"
         v-model="searchParam.press"
         clearable
-        @keyup.native.enter="search">
-      </el-input>
+        @keyup.native.enter="search"></el-input>
     </div>
     <div class="option-button">
       <el-button type="primary"
         size="medium"
         icon="el-icon-search"
-        @click.native="search">
-        搜索
-      </el-button>
+        @click.native="search">搜索</el-button>
       <el-button type="danger"
         size="medium"
-        @click.native="resetSearch">
-        重置
-      </el-button>
+        @click.native="resetSearch">重置</el-button>
       <el-button type="danger"
         size="medium"
-        @click.native="deleteBook">
-        删除
-      </el-button>
+        @click.native="deleteBook">删除</el-button>
       <el-button type="primary"
         size="medium"
-        @click.native="addBook">
-        新增
-      </el-button>
+        @click.native="addBook">新增</el-button>
       <el-button type="success"
         size="medium"
-        @click.native="downloadFile">
-        模板下载
-      </el-button>
+        @click.native="downloadFile">模板下载</el-button>
       <el-upload class="form-upload-excel"
         ref="uploadExcel"
         name="bookList"
         action="#"
-        accept=".xlsx,.xls"
+        accept=".xlsx, .xls"
         :http-request="uploadExcelFile"
         :show-file-list="false">
         <el-button slot="trigger"
@@ -81,23 +67,19 @@
         border>
         <el-table-column type="selection"
           align="center"
-          width="40">
-        </el-table-column>
+          width="40"></el-table-column>
         <el-table-column prop="name"
           align="center"
           label="书名"
-          width="160">
-        </el-table-column>
+          width="160"></el-table-column>
         <el-table-column prop="author"
           align="center"
           label="作者"
-          width="140">
-        </el-table-column>
+          width="140"></el-table-column>
         <el-table-column prop="press"
           align="center"
           label="出版社"
-          width="180">
-        </el-table-column>
+          width="180"></el-table-column>
         <el-table-column align="center"
           label="是否在售"
           width="100">
@@ -119,28 +101,23 @@
         <el-table-column prop="title"
           align="center"
           label="标题"
-          width="180">
-        </el-table-column>
+          width="180"></el-table-column>
         <el-table-column prop="description"
           align="center"
           label="描述"
-          width="180">
-        </el-table-column>
+          width="180"></el-table-column>
         <el-table-column prop="stock"
           align="center"
           label="库存"
-          width="100">
-        </el-table-column>
+          width="100"></el-table-column>
         <el-table-column prop="price"
           align="center"
           label="价格"
-          width="100">
-        </el-table-column>
+          width="100"></el-table-column>
         <el-table-column prop="salePrice"
           align="center"
           label="折后价"
-          width="100">
-        </el-table-column>
+          width="100"></el-table-column>
         <el-table-column align="center"
           label="图片"
           width="100">
@@ -155,13 +132,11 @@
         <el-table-column prop="createdAt"
           align="center"
           label="创建时间"
-          width="160">
-        </el-table-column>
+          width="160"></el-table-column>
         <el-table-column prop="updatedAt"
           align="center"
           label="修改时间"
-          width="160">
-        </el-table-column>
+          width="160"></el-table-column>
         <el-table-column fixed="right"
           align="center"
           label="操作"
@@ -180,8 +155,7 @@
         :page-sizes="[15, 30, 50]"
         :page-size="searchParam.pageSize"
         layout="total, sizes, prev, pager, next, jumper"
-        :total="total">
-      </el-pagination>
+        :total="total"></el-pagination>
     </div>
     <el-dialog :title="isEdit ? '编辑图书' : '新增图书'"
       top="50px"
@@ -220,8 +194,7 @@
             <el-option v-for="item in classify"
               :key="item.id"
               :label="item.name"
-              :value="item.id">
-            </el-option>
+              :value="item.id"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="标题"
@@ -283,7 +256,7 @@
             ref="upload"
             action="#"
             name="bookImg"
-            accept=".png,.jpg"
+            accept=".png, .jpg"
             :show-file-list="false"
             :auto-upload="false"
             :on-change="handleFileChange">
@@ -482,8 +455,6 @@ export default {
         return false;
       }
       this.$confirm(`确实删除所选图书吗？`, "提示", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
         type: "warning"
       })
         .then(async () => {
