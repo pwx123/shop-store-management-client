@@ -82,6 +82,7 @@ export default {
       this.$refs[form].validate(async valid => {
         if (valid) {
           if (this.formData.savePwd) {
+            // base64编码存储
             var obj = {
               name: Base64.encode(this.formData.name),
               pwd: Base64.encode(this.formData.pwd)
@@ -106,13 +107,13 @@ export default {
                 this.$message({
                   message: "登陆成功",
                   type: "success",
-                  duration: 1000
+                  duration: 1000,
+                  onClose: () => {
+                    this.$router.push({
+                      path: path
+                    });
+                  }
                 });
-                setTimeout(() => {
-                  this.$router.push({
-                    path: path
-                  });
-                }, 1000);
               } else {
                 this.$message({
                   message: logRes.errorMsg,

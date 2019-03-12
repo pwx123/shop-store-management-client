@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-form>
+    <el-form class="userinfo">
       <el-form-item label="账号">{{userInfo.name}}</el-form-item>
       <el-form-item label="昵称"
         class="edit">
@@ -15,12 +15,12 @@
               size="mini"
               icon="el-icon-check"
               circle
-              @click="submitNickname"></el-button>
+              @click.native="submitNickname"></el-button>
             <el-button type="danger"
               size="mini"
               icon="el-icon-close"
               circle
-              @click="isEditNickname = false"></el-button>
+              @click.native="isEditNickname = false"></el-button>
           </div>
           <div class="nickname"
             key="text"
@@ -28,7 +28,7 @@
             <span>
               {{userInfo.nickname || '--'}}
               <el-button type="text"
-                @click="isEditNickname = true; editNickname = userInfo.nickname">修改</el-button>
+                @click.native="isEditNickname = true; editNickname = userInfo.nickname">修改</el-button>
             </span>
           </div>
         </transition>
@@ -48,31 +48,80 @@
               <p>点击上传</p>
             </div>
           </el-upload>
-          <div v-if="isUploadAvatar">
-            <el-button type="success"
-              size="mini"
-              icon="el-icon-check"
-              circle
-              @click="submitAvatar"></el-button>
-            <el-button type="danger"
-              size="mini"
-              icon="el-icon-close"
-              circle
-              @click="isUploadAvatar = false; avatarBase64 = ''"></el-button>
-          </div>
+          <transition name="el-fade-in-linear">
+            <div v-if="isUploadAvatar">
+              <el-button type="success"
+                size="mini"
+                icon="el-icon-check"
+                circle
+                ::loading="uploadAvatarLoading"
+                @click.native="submitAvatar"></el-button>
+              <el-button type="danger"
+                size="mini"
+                icon="el-icon-close"
+                circle
+                @click.native="isUploadAvatar = false; avatarBase64 = ''"></el-button>
+            </div>
+          </transition>
         </div>
       </el-form-item>
       <el-form-item label="密码">
         <el-button type="text"
-          @click="submitPassword">修改密码</el-button>
+          @click.native="updatePwdVisible = true">修改密码</el-button>
       </el-form-item>
     </el-form>
+    <el-dialog title="修改密码"
+      width="400px"
+      :visible.sync="updatePwdVisible"
+      @close="closeDialog">
+      <el-form ref="form"
+        :model="updatePwdForm"
+        :rules="formRules">
+        <el-form-item label="原密码"
+          maxlength="16"
+          prop="pwd"
+          label-width="80px">
+          <el-input v-model.trim="updatePwdForm.pwd"
+            type="password"
+            placeholder="输入原密码"
+            autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="新密码"
+          prop="newPwd"
+          label-width="80px">
+          <el-input v-model.trim="updatePwdForm.newPwd"
+            type="password"
+            maxlength="16"
+            placeholder="密码要求8-16位数字、字母组合"
+            autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="重复密码"
+          prop="repNewPwd"
+          label-width="80px">
+          <el-input v-model.trim="updatePwdForm.repNewPwd"
+            type="password"
+            maxlength="16"
+            placeholder="重复输入新密码"
+            autocomplete="off"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer"
+        class="dialog-footer">
+        <el-button size="small"
+          @click.native="updatePwdVisible = false">取 消</el-button>
+        <el-button size="small"
+          type="primary"
+          @click.native="submitUpdatePwd('form')">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
+import MD5 from "crypto-js/md5";
+import { JSEncrypt } from "jsencrypt";
 import { mapActions, mapGetters } from "vuex";
-import { handleError } from "../../util/util";
+import { pwdReg, handleError } from "../../util/util";
 import {
   updateNickname,
   updatePassword,
@@ -83,12 +132,36 @@ import { getPublicKey } from "./../../api/common";
 export default {
   data() {
     return {
+      // 默认头像
       defaultAvatar: this.$basePath + "/images/admin/default.png",
+      // 编辑昵称
       isEditNickname: false,
+      // 昵称
       editNickname: "",
+      // 上传头像
       isUploadAvatar: false,
+      // 头像文件
       avatarFile: "",
-      avatarBase64: ""
+      // 上传头像loading
+      uploadAvatarLoading: false,
+      // 头像base64
+      avatarBase64: "",
+      // 修改密码弹窗
+      updatePwdVisible: false,
+      updatePwdForm: {
+        pwd: "",
+        newPwd: "",
+        repNewPwd: ""
+      },
+      formRules: {
+        pwd: [{ required: true, message: "请输入原密码", trigger: "blur" }],
+        newPwd: [
+          { required: true, validator: this.pwdRegFun, trigger: "blur" }
+        ],
+        repNewPwd: [
+          { required: true, validator: this.repPwdRegFun, trigger: "blur" }
+        ]
+      }
     };
   },
   created() {
@@ -128,7 +201,9 @@ export default {
         .then(async () => {
           try {
             let res = await updateNickname({ nickname: this.editNickname });
+            this.isEditNickname = false;
             if (res.errorCode === 200) {
+              this.getUserInfoActions();
               this.$message({
                 message: "修改成功",
                 type: "success"
@@ -140,6 +215,7 @@ export default {
               });
             }
           } catch (error) {
+            this.isEditNickname = false;
             handleError(error);
           }
         })
@@ -162,7 +238,6 @@ export default {
         });
         return false;
       }
-      console.log(file);
       let reader = new FileReader();
       reader.readAsDataURL(file.raw);
       reader.onload = e => {
@@ -182,11 +257,14 @@ export default {
         this.uploadAvatarLoading = true;
         let res = await updateAvatar(data, config);
         this.uploadAvatarLoading = false;
+        this.avatarFile = "";
+        this.isUploadAvatar = false;
         if (res.errorCode === 200) {
           this.$message({
             message: "提交成功",
             type: "success"
           });
+          this.getUserInfoActions();
         } else {
           this.$message({
             message: res.errorMsg,
@@ -198,14 +276,88 @@ export default {
         handleError(error);
       }
     },
+    closeDialog() {
+      this.$refs["form"].clearValidate();
+    },
+    // 修改密码提交
+    submitUpdatePwd(form) {
+      this.$refs[form].validate(async valid => {
+        if (valid) {
+          try {
+            let res = await getPublicKey();
+            if (res.errorCode === 200) {
+              let encryptor = new JSEncrypt();
+              encryptor.setPublicKey(res.data);
+              let md5Pwd = MD5(this.updatePwdForm.pwd).toString();
+              let md5NewPwd = MD5(this.updatePwdForm.newPwd).toString();
+              let md5RepNewPwd = MD5(this.updatePwdForm.repNewPwd).toString();
+              let pwd = encodeURI(encryptor.encrypt(md5Pwd));
+              let newPwd = encodeURI(encryptor.encrypt(md5NewPwd));
+              let repNewPwd = encodeURI(encryptor.encrypt(md5RepNewPwd));
+              let pwdRes = await updatePassword({ pwd, newPwd, repNewPwd });
+              this.updatePwdVisible = false;
+              this.updatePwdForm = {
+                pwd: "",
+                newPwd: "",
+                repNewPwd: ""
+              };
+              if (pwdRes.errorCode === 200) {
+                this.$message({
+                  message: "修改成功,请重新登陆",
+                  type: "success",
+                  duration: 1500,
+                  onClose: () => {
+                    this.$router.push("/login");
+                  }
+                });
+              } else {
+                this.$message({
+                  message: pwdRes.errorMsg,
+                  type: "error"
+                });
+              }
+            } else {
+              this.updatePwdVisible = false;
+              this.$message({
+                message: res.errorMsg,
+                type: "error"
+              });
+            }
+          } catch (error) {
+            this.updatePwdVisible = false;
+            handleError(error);
+          }
+        }
+      });
+    },
+    pwdRegFun(rule, value, callback) {
+      if (!pwdReg.test(value)) {
+        callback(new Error("请输入符合格式的密码"));
+      }
+      if (this.updatePwdForm.newPwd === this.updatePwdForm.pwd) {
+        callback(new Error("新密码不能与原密码相同"));
+      } else {
+        callback();
+      }
+    },
+    repPwdRegFun(rule, value, callback) {
+      if (!pwdReg.test(value)) {
+        callback(new Error("请输入符合格式的密码"));
+      } else if (this.updatePwdForm.newPwd !== this.updatePwdForm.repNewPwd) {
+        callback(new Error("两次密码不一致"));
+      } else {
+        callback();
+      }
+    },
     ...mapActions(["getUserInfoActions"])
   }
 };
 </script>
 
 <style lang="stylus" scoped>
-.el-form-item
-  margin-bottom 10px
+.userinfo
+  .el-form-item
+    margin-bottom 10px
 
 .edit
   display flex
@@ -228,7 +380,7 @@ export default {
     > div:first-child
       height 100px
 
-    &:hover
+    .el-upload:hover
       .modal
         opacity 1
 

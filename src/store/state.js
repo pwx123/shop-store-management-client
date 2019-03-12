@@ -2,7 +2,7 @@ const state = {
   userInfo: {
     name: "",
     nickName: "",
-    avatar: ""
+    avatarUrl: ""
   }
 };
 export default state;

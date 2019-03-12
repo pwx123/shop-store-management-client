@@ -17,7 +17,6 @@
         <el-form ref="form"
           :model="formData"
           :rules="formRules"
-          :hide-required-asterisk="true"
           label-width="80px">
           <h1>欢迎注册</h1>
           <el-form-item label="登陆账号"
