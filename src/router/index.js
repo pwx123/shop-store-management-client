@@ -15,6 +15,7 @@ const BookList = () => import( /* webpackChunkName: "BookList" */ '@/views/book/
 const BookClassify = () => import( /* webpackChunkName: "BookClassify" */ '@/views/book/BookClassify');
 const AdminInfo = () => import( /* webpackChunkName: "AdminInfo" */ '@/views/system/AdminInfo');
 const ShopManagement = () => import( /* webpackChunkName: "ShopManagement" */ '@/views/system/ShopManagement');
+const OptionRecord = () => import( /* webpackChunkName: "OptionRecord" */ '@/views/system/OptionRecord');
 
 Vue.use(Router);
 
@@ -100,11 +101,15 @@ export default new Router({
       children: [{
         path: '/index/adminInfo',
         component: AdminInfo,
-        name: '信息修改'
+        name: '个人信息修改'
       }, {
         path: '/index/shopManagement',
         component: ShopManagement,
         name: '店铺管理'
+      }, {
+        path: '/index/OptionRecord',
+        component: OptionRecord,
+        name: '店铺操作日志'
       }]
     },
     {

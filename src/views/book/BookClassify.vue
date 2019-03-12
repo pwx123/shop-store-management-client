@@ -110,7 +110,7 @@ export default {
     // 删除分类
     deleteClassify(item) {
       this.$confirm(
-        `确实删除 <span style='color:#f56c6c'>${item.name}</span> 这个分类吗？`,
+        `确定删除 <span style='color:#f56c6c'>${item.name}</span> 这个分类吗？`,
         "提示",
         {
           confirmButtonText: "确定",

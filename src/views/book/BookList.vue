@@ -454,7 +454,7 @@ export default {
         });
         return false;
       }
-      this.$confirm(`确实删除所选图书吗？`, "提示", {
+      this.$confirm(`确定删除所选图书吗？`, "提示", {
         type: "warning"
       })
         .then(async () => {

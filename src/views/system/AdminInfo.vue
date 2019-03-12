@@ -41,7 +41,7 @@
             :auto-upload="false"
             :show-file-list="false"
             :on-change="uploadAvatar">
-            <img :src="avatarBase64 || userInfo.avator || defaultAvatar"
+            <img :src="avatarUrl"
               alt="头像">
             <div class="modal">
               <i class="el-icon-upload"></i>
@@ -168,6 +168,9 @@ export default {
     this.getUserInfoFun();
   },
   computed: {
+    avatarUrl() {
+      return this.avatarBase64 || this.userInfo.avatarUrl || this.defaultAvatar;
+    },
     ...mapGetters(["userInfo"])
   },
   methods: {
@@ -189,7 +192,7 @@ export default {
         return false;
       }
       this.$confirm(
-        `确实修改昵称为 <span style='color:#f56c6c'>${
+        `确定修改昵称为 <span style='color:#f56c6c'>${
           this.editNickname
         }</span> 吗？`,
         "提示",
