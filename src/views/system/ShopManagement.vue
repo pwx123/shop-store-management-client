@@ -34,9 +34,9 @@
       </el-form-item>
       <el-form-item label="店铺开关"
         class="edit">
-        <el-switch v-model="editShopInfo.shopSwitch"
-          active-value="1"
-          inactive-value="0"
+        <el-switch v-model="editShopInfo.status"
+          :active-value="1"
+          :inactive-value="0"
           @change="submitShopStatus"></el-switch>
       </el-form-item>
       <el-form-item label="店铺介绍"
@@ -62,14 +62,12 @@
               circle
               @click.native="isEditDescription = false"></el-button>
           </div>
-          <div class="shopname"
+          <div class="shop-name-edit"
             key="text"
             v-else>
-            <span>
-              {{shopInfo.description || '--'}}
-              <el-button type="text"
-                @click.native="isEditDescription = true; editShopInfo.description = shopInfo.description">修改</el-button>
-            </span>
+            <p>{{shopInfo.description || '--'}}</p>
+            <el-button type="text"
+              @click.native="isEditDescription = true; editShopInfo.description = shopInfo.description">修改</el-button>
           </div>
         </transition>
       </el-form-item>
@@ -91,7 +89,7 @@ export default {
       // 编辑信息
       editShopInfo: {
         shopName: "",
-        shopSwitch: 0,
+        status: 0,
         description: ""
       },
       shopInfo: {}
@@ -164,7 +162,7 @@ export default {
                 });
                 this.isEditShopName = false;
                 if (res.errorCode === 200) {
-                  this.getShopInfo();
+                  this.getShopInfoFun();
                   this.$message({
                     message: "修改成功",
                     type: "success"
@@ -209,11 +207,11 @@ export default {
             .then(async ({ value }) => {
               try {
                 let res = await bookApi.changeShopStatus({
-                  statua: this.editShopInfo.shopSwitch,
+                  status: this.editShopInfo.status,
                   remark: value
                 });
                 if (res.errorCode === 200) {
-                  this.getShopInfo();
+                  this.getShopInfoFun();
                   this.$message({
                     message: "修改成功",
                     type: "success"
@@ -229,13 +227,11 @@ export default {
               }
             })
             .catch(() => {
-              this.editShopInfo.shopSwitch =
-                this.editShopInfo.shopSwitch == "1" ? "0" : "1";
+              this.editShopInfo.status = this.editShopInfo.status == 1 ? 0 : 1;
             });
         })
         .catch(() => {
-          this.editShopInfo.shopSwitch =
-            this.editShopInfo.shopSwitch == "1" ? "0" : "1";
+          this.editShopInfo.status = this.editShopInfo.status == 1 ? 0 : 1;
         });
     },
     // 修改店铺介绍
@@ -278,7 +274,7 @@ export default {
                 });
                 this.isEditDescription = false;
                 if (res.errorCode === 200) {
-                  this.getShopInfo();
+                  this.getShopInfoFun();
                   this.$message({
                     message: "修改成功",
                     type: "success"
@@ -310,6 +306,7 @@ export default {
   .edit
     display flex
     align-items center
+    color #333
 
     .el-button
       margin-left 10px
@@ -322,5 +319,11 @@ export default {
         width 220px
 
       .el-textarea
-        width 360px
+        width 500px
+        font-family Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, SimSun, sans-serif
+
+      p
+        max-width 500px
+        line-height 22px
+        margin-right 20px
 </style>

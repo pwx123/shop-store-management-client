@@ -9,7 +9,7 @@
         <el-dropdown trigger="hover"
           size="medium">
           <span class="el-dropdown-link userinfo-inner">
-            <span>{{userInfo.nickname || userInfo.name}}</span>
+            <span>{{userInfo.nickname}}</span>
             <img :src="userInfo.avatarUrl || defaultAvatar" />
           </span>
           <el-dropdown-menu slot="dropdown">

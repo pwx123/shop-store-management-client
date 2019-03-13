@@ -21,20 +21,26 @@
           <h1>欢迎注册</h1>
           <el-form-item label="登陆账号"
             prop="name">
-            <el-input v-model="formData.name"
+            <el-input v-model.trim="formData.name"
               maxlength="11"
               placeholder="请输入手机号"></el-input>
           </el-form-item>
+          <el-form-item label="昵称"
+            prop="nickname">
+            <el-input v-model.trim="formData.nickname"
+              maxlength="20"
+              placeholder="请输入昵称"></el-input>
+          </el-form-item>
           <el-form-item label="登陆密码"
             prop="pwd">
-            <el-input v-model="formData.pwd"
+            <el-input v-model.trim="formData.pwd"
               maxlength="16"
               placeholder="密码要求8-16位数字、字母组合"
               type="password"></el-input>
           </el-form-item>
           <el-form-item label="重复密码"
             prop="repPwd">
-            <el-input v-model="formData.repPwd"
+            <el-input v-model.trim="formData.repPwd"
               maxlength="16"
               placeholder="重复输入密码"
               type="password"></el-input>
@@ -62,11 +68,13 @@ export default {
       logining: false,
       formData: {
         name: "",
+        nickname: "",
         pwd: "",
         repPwd: ""
       },
       formRules: {
         name: [{ validator: this.mobileRegFun, trigger: "blur" }],
+        nickname: [{ validator: this.nicknameFun, trigger: "blur" }],
         pwd: [{ validator: this.pwdRegFun, trigger: "blur" }],
         repPwd: [{ validator: this.repPwdRegFun, trigger: "blur" }]
       },
@@ -87,7 +95,8 @@ export default {
               let md5RepPwd = MD5(this.formData.repPwd).toString();
               let pwd = encodeURI(encryptor.encrypt(md5Pwd));
               let repPwd = encodeURI(encryptor.encrypt(md5RepPwd));
-              let logRes = await register({ name, pwd, repPwd });
+              let nickname = this.formData.nickname;
+              let logRes = await register({ name, nickname, pwd, repPwd });
               if (logRes.errorCode === 200) {
                 this.$message({
                   message: "注册成功",
@@ -121,6 +130,13 @@ export default {
     mobileRegFun(rule, value, callback) {
       if (!mobileReg.test(value)) {
         callback(new Error("请输入正确的手机号"));
+      } else {
+        callback();
+      }
+    },
+    nicknameFun(rule, value, callback) {
+      if (!value || value.length == 0) {
+        callback(new Error("请输入昵称"));
       } else {
         callback();
       }
