@@ -124,7 +124,7 @@
           <template slot-scope="scope">
             <el-button v-if="scope.row.imageUrl"
               type="text"
-              size="small"
+              size="mini"
               @click.native="showImgDialogFun(scope.row.imageUrl)">查看图片</el-button>
             <span v-else>---</span>
           </template>
@@ -143,7 +143,7 @@
           width="100">
           <template slot-scope="scope">
             <el-button type="text"
-              size="small"
+              size="mini"
               @click.native="editBook(scope.row)">编辑</el-button>
           </template>
         </el-table-column>

@@ -107,7 +107,7 @@ export default new Router({
         component: ShopManagement,
         name: '店铺管理'
       }, {
-        path: '/index/ShopOptionRecord',
+        path: '/index/shopOptionRecord',
         component: ShopOptionRecord,
         name: '店铺操作日志'
       }]
