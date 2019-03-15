@@ -1,15 +1,12 @@
 <template>
   <div>
-     首页
+   首页
   </div>
 </template>
 
 <script>
-  export default {
-
-  }
+  export default {};
 </script>
 
-<style scoped>
-
+<style lang="stylus" scoped>
 </style>
