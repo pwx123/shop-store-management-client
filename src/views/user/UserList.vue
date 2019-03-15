@@ -61,15 +61,14 @@
           width="160"></el-table-column>
         <el-table-column align="center"
           label="性别"
-          width="140"
-          clearable>
+          width="80">
           <template slot-scope="scope">
             <span>{{sexMap[scope.row.sex]}}</span>
           </template>
         </el-table-column>
         <el-table-column align="center"
           label="状态"
-          width="160">
+          width="100">
           <template slot-scope="scope">
             <span v-if="scope.row.status == 0"
               class="status-success">{{statusMap[scope.row.status]}}</span>
@@ -103,17 +102,17 @@
         <el-table-column fixed="right"
           align="center"
           label="操作"
-          width="200">
+          width="240">
           <template slot-scope="scope">
             <el-button type="text"
               size="mini"
-              @click.native="editBook(scope.row)">编辑</el-button>
+              @click.native="resetPwd(scope.row)">重置密码</el-button>
             <el-button type="text"
               size="mini"
-              @click.native="editBook(scope.row)">查看收货地址</el-button>
+              @click.native="showDeliveryAddress(scope.row)">查看收货地址</el-button>
             <el-button type="text"
               size="mini"
-              @click.native="editBook(scope.row)">查看订单</el-button>
+              @click.native="showUserOrder(scope.row)">查看订单</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -126,6 +125,44 @@
         layout="total, sizes, prev, pager, next, jumper"
         :total="total"></el-pagination>
     </div>
+    <el-dialog title="收货地址"
+      width="1200px"
+      :visible.sync="dialogTableVisible">
+      <el-table :data="deliveryAddressData"
+        size="mini"
+        :header-cell-style="{background: '#fdfdfd'}"
+        border>
+        <el-table-column prop="deliveryName"
+          align="center"
+          label="收货人"
+          width="120"></el-table-column>
+        <el-table-column prop="deliveryMobile"
+          align="center"
+          label="手机号"
+          width="140"></el-table-column>
+        <el-table-column align="center"
+          label="收货地址">
+          <template slot-scope="scope">
+            {{scope.row.provinceName + ' ' + scope.row.cityName + ' ' + scope.row.countryName + ' ' + scope.row.detailAddress}}
+          </template>
+        </el-table-column>
+        <el-table-column align="center"
+          label="默认地址"
+          width="100">
+          <template slot-scope="scope">
+            {{scope.row.isDefault == 1 ? '是': '否'}}
+          </template>
+        </el-table-column>
+        <el-table-column prop="createdAt"
+          align="center"
+          label="创建时间"
+          width="140"></el-table-column>
+        <el-table-column prop="updatedAt"
+          align="center"
+          label="更新时间"
+          width="140"></el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
@@ -142,6 +179,10 @@ export default {
       dataPicker: [],
       // 列表数据
       tableData: [],
+      // 收货地址数据
+      deliveryAddressData: [],
+      // 收货地址弹窗
+      dialogTableVisible: false,
       // 加载中
       loading: false,
       // 搜索参数
@@ -238,6 +279,27 @@ export default {
       };
       this.getBookList();
     },
+    // 重置密码
+    resetPwd(row) {},
+    // 查看收货地址
+    async showDeliveryAddress(row) {
+      this.dialogTableVisible = true;
+      try {
+        let res = await userApi.getUserDeliveryAddress({ userId: row.id });
+        if (res.errorCode === 200) {
+          this.deliveryAddressData = res.data;
+        } else {
+          this.$message({
+            message: res.errorMsg,
+            type: "error"
+          });
+        }
+      } catch (error) {
+        handleError(error);
+      }
+    },
+    // 查看订单
+    showUserOrder(row) {},
     // 每页页数变化
     handleSizeChange(val) {
       this.searchParam.pageSize = val;
