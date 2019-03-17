@@ -54,22 +54,27 @@
         <el-table-column prop="name"
           align="center"
           label="用户手机号"
-          width="160"></el-table-column>
+          width="140"></el-table-column>
         <el-table-column prop="nickname"
           align="center"
           label="用户名"
-          width="160"></el-table-column>
+          width="140"></el-table-column>
         <el-table-column align="center"
           label="性别"
-          width="80">
+          width="60">
           <template slot-scope="scope">
             <span>{{sexMap[scope.row.sex]}}</span>
           </template>
         </el-table-column>
         <el-table-column align="center"
           label="状态"
-          width="100">
+          width="120">
           <template slot-scope="scope">
+            <el-switch v-model="scope.row.status"
+              :active-value="0"
+              :inactive-value="1"
+              @change="changeUserStatusFun(scope.row)">
+            </el-switch>
             <span v-if="scope.row.status == 0"
               class="status-success">{{statusMap[scope.row.status]}}</span>
             <span v-else
@@ -126,20 +131,24 @@
         :total="total"></el-pagination>
     </div>
     <el-dialog title="收货地址"
-      width="1200px"
+      width="1050px"
       :visible.sync="dialogTableVisible">
       <el-table :data="deliveryAddressData"
         size="mini"
         :header-cell-style="{background: '#fdfdfd'}"
         border>
+        <el-table-column type="index"
+          align="center"
+          label="序号"
+          width="50"></el-table-column>
         <el-table-column prop="deliveryName"
           align="center"
           label="收货人"
-          width="120"></el-table-column>
+          width="110"></el-table-column>
         <el-table-column prop="deliveryMobile"
           align="center"
           label="手机号"
-          width="140"></el-table-column>
+          width="130"></el-table-column>
         <el-table-column align="center"
           label="收货地址">
           <template slot-scope="scope">
@@ -148,7 +157,7 @@
         </el-table-column>
         <el-table-column align="center"
           label="默认地址"
-          width="100">
+          width="70">
           <template slot-scope="scope">
             {{scope.row.isDefault == 1 ? '是': '否'}}
           </template>
@@ -163,11 +172,33 @@
           width="140"></el-table-column>
       </el-table>
     </el-dialog>
+    <el-dialog width="400px"
+      title="重置成功"
+      :visible.sync="resetPwdDialog">
+      <div class="reset-pwd">
+        <span>新密码：</span>
+        <span class="new-pwd">{{newPwd}}</span>
+        <el-button type="text"
+          size="medium"
+          v-clipboard:copy="newPwd"
+          v-clipboard:success="onCopySuccess"
+          v-clipboard:error="onCopyError">一键复制</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog top="50px"
+      width="700px"
+      :visible.sync="showImgDialog">
+      <div class="dialog-img">
+        <img :src="showImageUrl"
+          alt="图片详情">
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import * as userApi from "./../../api/user";
+import Base64 from "./../../util/base64";
 import { timeFormat, getDatePickerTime, handleError } from "./../../util/util";
 
 export default {
@@ -183,8 +214,16 @@ export default {
       deliveryAddressData: [],
       // 收货地址弹窗
       dialogTableVisible: false,
+      // 重置密码成功后弹窗
+      resetPwdDialog: false,
+      // 新密码
+      newPwd: "",
       // 加载中
       loading: false,
+      // 查看大图Url
+      showImageUrl: "",
+      // 查看大图弹窗
+      showImgDialog: false,
       // 搜索参数
       searchParam: {
         pageNumber: 1,
@@ -236,15 +275,15 @@ export default {
   created() {
     // 默认查一个月的
     this.dataPicker = getDatePickerTime(30);
-    this.getBookList();
+    this.getUserList();
   },
   methods: {
     // 执行搜索
     search() {
-      this.getBookList();
+      this.getUserList();
     },
     // 获取表格数据
-    async getBookList() {
+    async getUserList() {
       this.searchParam.startTime = this.dataPicker[0];
       this.searchParam.endTime = this.dataPicker[1];
       try {
@@ -265,6 +304,15 @@ export default {
         handleError(error);
       }
     },
+    // 查看大图
+    showImgDialogFun(imageUrl, isBase64) {
+      if (isBase64) {
+        this.showImageUrl = imageUrl;
+      } else {
+        this.showImageUrl = imageUrl + this.getTimeUrl();
+      }
+      this.showImgDialog = true;
+    },
     // 重置搜索条件
     resetSearch() {
       this.dataPicker = getDatePickerTime(30);
@@ -277,10 +325,50 @@ export default {
         sex: "",
         name: ""
       };
-      this.getBookList();
+      this.getUserList();
+    },
+    // url加上时间参数
+    getTimeUrl() {
+      return `?t=${new Date().getTime()}`;
     },
     // 重置密码
-    resetPwd(row) {},
+    resetPwd(row) {
+      this.$confirm(
+        `确定 重置用户 <span style="color:#409eff">${name}</span> 的密码吗？`,
+        "提示",
+        {
+          type: "warning",
+          dangerouslyUseHTMLString: true
+        }
+      )
+        .then(async () => {
+          try {
+            let res = await userApi.resetUserPwd({
+              id: row.id
+            });
+            if (res.errorCode === 200) {
+              let newPwd = Base64.decode(res.data.newPwd);
+              this.$message({
+                message: "重置成功",
+                type: "success"
+              });
+              this.resetPwdDialog = true;
+              this.newPwd = newPwd;
+              this.getUserList();
+            } else {
+              this.$message({
+                message: res.errorMsg,
+                type: "error"
+              });
+            }
+          } catch (error) {
+            handleError(error);
+          }
+        })
+        .catch(() => {
+          row.status = row.status == 0 ? 1 : 0;
+        });
+    },
     // 查看收货地址
     async showDeliveryAddress(row) {
       this.dialogTableVisible = true;
@@ -298,17 +386,71 @@ export default {
         handleError(error);
       }
     },
+    changeUserStatusFun(row) {
+      let { status, name } = row;
+      let str =
+        status == 1
+          ? '<span style="color:#f56c6c">封禁</span>'
+          : '<span style="color:#67c23a">启用</span>';
+      this.$confirm(
+        `确定 ${str} 用户 <span style="color:#409eff">${name}</span> 的账号吗？`,
+        "提示",
+        {
+          type: "warning",
+          dangerouslyUseHTMLString: true
+        }
+      )
+        .then(async () => {
+          try {
+            let res = await userApi.changeUserStatus({
+              id: row.id,
+              status: row.status
+            });
+            if (res.errorCode === 200) {
+              this.$message({
+                message: "修改成功",
+                type: "success"
+              });
+              this.getUserList();
+            } else {
+              this.$message({
+                message: res.errorMsg,
+                type: "error"
+              });
+            }
+          } catch (error) {
+            handleError(error);
+          }
+        })
+        .catch(() => {
+          row.status = row.status == 0 ? 1 : 0;
+        });
+    },
+    // 复制成功
+    onCopySuccess() {
+      this.$message({
+        message: "复制成功",
+        type: "success"
+      });
+    },
+    // 复制失败
+    onCopyError() {
+      this.$message({
+        message: "复制失败，请尝试手动复制",
+        type: "error"
+      });
+    },
     // 查看订单
     showUserOrder(row) {},
     // 每页页数变化
     handleSizeChange(val) {
       this.searchParam.pageSize = val;
-      this.getBookList();
+      this.getUserList();
     },
     // 页码变化
     handleCurrentChange(val) {
       this.searchParam.pageNumber = val;
-      this.getBookList();
+      this.getUserList();
     }
   }
 };
@@ -340,6 +482,21 @@ export default {
 .table-container
   margin-top 20px
 
+  .el-switch
+    margin-right 6px
+
   .el-pagination
     margin-top 20px
+
+.dialog-img
+  display flex
+  justify-content center
+  align-items center
+  padding 10px
+
+  img
+    max-width 600px
+
+.new-pwd
+ margin-right 10px
 </style>

@@ -10,9 +10,10 @@ const Home = () => import( /* webpackChunkName: "Home" */ '@/views/home/Home');
 const Index = () => import( /* webpackChunkName: "Index" */ '@/views/index/Index');
 const OrderList = () => import( /* webpackChunkName: "OrderList" */ '@/views/order/OrderList');
 const UserList = () => import( /* webpackChunkName: "UserList" */ '@/views/user/UserList');
-const Address = () => import( /* webpackChunkName: "Address" */ '@/views/user/Address');
 const BookList = () => import( /* webpackChunkName: "BookList" */ '@/views/book/BookList');
 const BookClassify = () => import( /* webpackChunkName: "BookClassify" */ '@/views/book/BookClassify');
+const StockPurchase = () => import( /* webpackChunkName: "StockPurchase" */ '@/views/stock/StockPurchase');
+const StockRecord = () => import( /* webpackChunkName: "StockRecord" */ '@/views/stock/StockRecord');
 const AdminInfo = () => import( /* webpackChunkName: "AdminInfo" */ '@/views/system/AdminInfo');
 const ShopManagement = () => import( /* webpackChunkName: "ShopManagement" */ '@/views/system/ShopManagement');
 const ShopOptionRecord = () => import( /* webpackChunkName: "ShopOptionRecord." */ '@/views/system/ShopOptionRecord');
@@ -82,16 +83,25 @@ export default new Router({
       name: '用户管理',
       iconCls: 'iconfont icon-icon_user_management',
       children: [{
-          path: '/index/userList',
-          component: UserList,
-          name: '用户列表'
-        },
-        {
-          path: '/index/address',
-          component: Address,
-          name: '收获地址管理'
-        }
-      ]
+        path: '/index/userList',
+        component: UserList,
+        name: '用户列表'
+      }]
+    },
+    {
+      path: '/index',
+      component: Home,
+      name: '进货管理',
+      iconCls: 'iconfont icon-jinhuorukux',
+      children: [{
+        path: '/index/stockPurchase',
+        component: StockPurchase,
+        name: '库存管理'
+      }, {
+        path: '/index/stockRecord',
+        component: StockRecord,
+        name: '进货记录'
+      }]
     },
     {
       path: '/index',

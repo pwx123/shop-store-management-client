@@ -35,12 +35,27 @@
       <el-button type="danger"
         size="medium"
         @click.native="resetSearch">重置</el-button>
-      <el-button type="success"
-        size="medium"
-        @click.native="changeBookSellStatus(1)">上架</el-button>
       <el-button type="danger"
         size="medium"
-        @click.native="changeBookSellStatus(0)">下架</el-button>
+        @click.native="deleteBook">删除</el-button>
+      <el-button type="primary"
+        size="medium"
+        @click.native="addBook">新增</el-button>
+      <el-button type="success"
+        size="medium"
+        @click.native="downloadFile">模板下载</el-button>
+      <el-upload class="form-upload-excel"
+        ref="uploadExcel"
+        name="bookList"
+        action="#"
+        accept=".xlsx, .xls"
+        :http-request="uploadExcelFile"
+        :show-file-list="false">
+        <el-button slot="trigger"
+          size="medium"
+          type="success"
+          :loading="uploadExcelLoading">批量上传</el-button>
+      </el-upload>
     </div>
     <div class="table-container">
       <el-table size="mini"
@@ -97,11 +112,11 @@
           width="100"></el-table-column>
         <el-table-column prop="price"
           align="center"
-          label="价格"
+          label="价格（元）"
           width="100"></el-table-column>
         <el-table-column prop="salePrice"
           align="center"
-          label="折后价"
+          label="折后价（元）"
           width="100"></el-table-column>
         <el-table-column align="center"
           label="图片"
@@ -125,11 +140,14 @@
         <el-table-column fixed="right"
           align="center"
           label="操作"
-          width="100">
+          width="180">
           <template slot-scope="scope">
             <el-button type="text"
               size="mini"
               @click.native="editBook(scope.row)">编辑</el-button>
+            <el-button type="text"
+              size="mini"
+              @click.native="editStockFun(scope.row)">库存修改</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -142,9 +160,10 @@
         layout="total, sizes, prev, pager, next, jumper"
         :total="total"></el-pagination>
     </div>
-    <el-dialog title="编辑图书"
+    <el-dialog :title="isEdit ? '编辑图书' : '新增图书'"
       top="50px"
       width="500px"
+      class="el-dialog-edit"
       :close-on-click-modal="false"
       :close-on-press-escape="false"
       :visible.sync="showEditFormDialog"
@@ -196,6 +215,23 @@
             resize="none"
             autocomplete="off"
             :rows="3"></el-input>
+        </el-form-item>
+        <el-form-item v-if="!isEdit"
+          label="库存量"
+          prop="stock"
+          label-width="80px">
+          <el-input v-model.trim="editData.stock"
+            type="number"
+            autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item v-if="!isEdit"
+          label="进货价"
+          prop="stockPrice"
+          label-width="80px">
+          <el-input v-model.trim="editData.stockPrice"
+            type="number"
+            step="0.01"
+            autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="价格"
           prop="price"
@@ -254,6 +290,83 @@
           @click="submitEditBook('editDataForm')">确 定</el-button>
       </div>
     </el-dialog>
+    <el-dialog width="400px"
+      class="edit-stock"
+      title="库存修改"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :visible.sync="editStockDialog">
+      <el-form ref="editStockForm"
+        :model="editData"
+        :rules="editDataValidate"
+        :hide-required-asterisk="false">
+        <el-form-item label="操作类型"
+          label-width="80px">
+          <el-radio-group v-model="radioSwitch"
+            size="medium"
+            @change="radioChange">
+            <el-radio :label="0"
+              border>进货</el-radio>
+            <el-radio :label="1"
+              border>删除</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="库存量"
+          prop="changeStock"
+          label-width="80px">
+          <div class="in-stock"
+            v-if="radioSwitch == 0">
+            <span>{{editData.stock + editStock}}</span>
+            <el-tooltip effect="dark"
+              content="实际更新数量已提交后为准"
+              placement="top">
+              <i class="el-icon-info"></i>
+            </el-tooltip>
+            <el-input-number v-model="editStock"
+              size="small"
+              :min="0"
+              :step="1"></el-input-number>
+          </div>
+          <div class="out-stock"
+            v-else>
+            <span>{{editData.stock + editStock}}</span>
+            <el-tooltip effect="dark"
+              content="实际更新数量已提交后为准"
+              placement="top">
+              <i class="el-icon-info"></i>
+            </el-tooltip>
+            <el-input-number v-model="editStock"
+              size="small"
+              :min="-editData.stock"
+              :max="0"
+              :step="1"></el-input-number>
+          </div>
+        </el-form-item>
+        <el-form-item label="进货价"
+          prop="stockPrice"
+          label-width="80px"
+          v-if="radioSwitch == 0">
+          <el-input v-model="editData.stockPrice"></el-input>
+        </el-form-item>
+        <el-form-item label="备注"
+          prop="remark"
+          label-width="80px"
+          v-if="radioSwitch == 1">
+          <el-input v-model="editData.remark"
+            type="textarea"
+            resize="none"
+            rows="3"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer"
+        class="dialog-footer">
+        <el-button size="small"
+          @click="editStockDialog = false">取 消</el-button>
+        <el-button type="primary"
+          size="small"
+          @click="submitEditStock('editStockForm')">确 定</el-button>
+      </div>
+    </el-dialog>
     <el-dialog top="50px"
       width="700px"
       :visible.sync="showImgDialog">
@@ -287,14 +400,24 @@ export default {
       tableData: [],
       // 编辑数据
       editData: {},
+      // 是否是编辑图书
+      isEdit: true,
       // 提交校验规则
       editDataValidate: {
         name: [{ required: true, message: "请输入书名", trigger: "blur" }],
         author: [{ required: true, message: "请输入作者", trigger: "blur" }],
         press: [{ required: true, message: "请输入出版社", trigger: "blur" }],
         title: [{ required: true, message: "请输入标题", trigger: "blur" }],
+        remark: [{ required: true, message: "请输入备注", trigger: "blur" }],
         description: [
           { required: true, message: "请输入描述", trigger: "blur" }
+        ],
+        changeStock: [
+          { required: true, validator: this.changeStockRegFun, trigger: "blur" }
+        ],
+        stock: [{ required: true, validator: this.numRegFun, trigger: "blur" }],
+        stockPrice: [
+          { required: true, validator: this.decimalRegFun, trigger: "blur" }
         ],
         price: [
           { required: true, validator: this.decimalRegFun, trigger: "blur" }
@@ -315,10 +438,17 @@ export default {
       previewBase64: "",
       // file文件
       uploadFile: "",
+      // 修改库存弹框
+      editStockDialog: false,
+      radioSwitch: 0,
       // 展示查看大图
       showImgDialog: false,
       // 大图Url
       showImageUrl: "",
+      // 库存量修改值
+      editStock: 0,
+      // 上传excel按钮loading
+      uploadExcelLoading: false,
       // 搜索参数
       searchParam: {
         pageNumber: 1,
@@ -407,8 +537,47 @@ export default {
       };
       this.getBookList();
     },
+    // 删除图书
+    async deleteBook() {
+      let params = this.multipleSelection.map(val => val.id);
+      let obj = {};
+      obj.ids = params.join(",");
+      if (params.length === 0) {
+        this.$message({
+          message: "请选择要删除的图书",
+          type: "warning"
+        });
+        return false;
+      }
+      this.$confirm(`确定删除所选图书吗？`, "提示", {
+        type: "warning"
+      })
+        .then(async () => {
+          try {
+            let res = await bookApi.deleteBooks(obj);
+            if (res.errorCode === 200) {
+              this.$message({
+                message: "删除成功",
+                type: "success"
+              });
+              this.searchParam.pageNumber = 1;
+              this.getBookList();
+            } else {
+              this.$message({
+                message: res.errorMsg,
+                type: "error"
+              });
+            }
+          } catch (error) {
+            handleError(error);
+          }
+        })
+        .catch(() => {});
+    },
     // 编辑图书
     editBook(row) {
+      this.isEdit = true;
+      this.uploadFile = "";
       this.editData = Object.assign({}, row);
       this.previewBase64 = "";
       if (row.classify) {
@@ -440,7 +609,14 @@ export default {
               case "createdAt":
               case "updatedAt":
               case "stock":
+                if (!this.isEdit) {
+                  formData.append(key, this.editData[key]);
+                }
+                break;
               case "stockPrice":
+                if (!this.isEdit) {
+                  formData.append(key, this.editData[key]);
+                }
                 break;
               default:
                 formData.append(key, this.editData[key]);
@@ -450,7 +626,12 @@ export default {
             headers: { "Content-Type": "multipart/form-data" }
           };
           try {
-            let res = await bookApi.updateBook(formData, config);
+            let res = "";
+            if (this.isEdit) {
+              res = await bookApi.updateBook(formData, config);
+            } else {
+              res = await bookApi.insertBook(formData, config);
+            }
             if (res.errorCode === 200) {
               this.$message({
                 message: "提交成功",
@@ -470,35 +651,46 @@ export default {
         }
       });
     },
-    async changeBookSellStatus(isSell) {
-      let params = this.multipleSelection.map(val => val.id);
-      let obj = {};
-      obj.isSell = isSell;
-      obj.ids = params.join(",");
-      if (params.length === 0) {
-        this.$message({
-          message: "请选择要更改的图书",
-          type: "warning"
-        });
-        return false;
-      }
-      try {
-        let res = await bookApi.changeBookSellStatus(obj);
-        if (res.errorCode === 200) {
-          this.$message({
-            message: "更改成功",
-            type: "success"
-          });
-          this.getBookList();
-        } else {
-          this.$message({
-            message: res.errorMsg,
-            type: "error"
-          });
+    // radio 更改
+    radioChange(val) {
+      this.editStock = 0;
+      this.$refs["editStockForm"].clearValidate();
+      console.log(val);
+    },
+    // 提交库存修改
+    submitEditStock(formName) {
+      this.$refs[formName].validate(async valid => {
+        if (valid) {
+          try {
+            let res = await bookApi.updateBookStock({
+              id: this.editData.id,
+              changeStock: this.editStock
+            });
+            this.editStockDialog = false;
+            if (res.errorCode === 200) {
+              this.$message({
+                message: "修改成功",
+                type: "success"
+              });
+              this.getBookList();
+            } else {
+              this.$message({
+                message: res.errorMsg,
+                type: "error"
+              });
+            }
+          } catch (error) {
+            handleError(error);
+          }
         }
-      } catch (error) {
-        handleError(error);
-      }
+      });
+    },
+    // 修改库存
+    editStockFun(row) {
+      this.editStockDialog = true;
+      this.editStock = 0;
+      this.editData = Object.assign({}, row);
+      this.editData.remark = "";
     },
     // 选择图片
     handleFileChange(file) {
@@ -522,6 +714,94 @@ export default {
         this.previewBase64 = e.currentTarget.result;
         this.uploadFile = file.raw;
       };
+    },
+    // 上传excel
+    async uploadExcelFile(params) {
+      let reg = /.*\.(xlsx|xls)$/;
+      if (!reg.test(params.file.name)) {
+        this.$message({
+          message: "格式不支持",
+          type: "error"
+        });
+        return false;
+      }
+      if (params.file.size > 1024 * 1024 * 20) {
+        this.$message({
+          message: "大小不能超过20M",
+          type: "error"
+        });
+        return false;
+      }
+      let data = new FormData();
+      data.append("excel", params.file);
+      let config = {
+        headers: { "Content-Type": "multipart/form-data" }
+      };
+      try {
+        this.uploadExcelLoading = true;
+        let res = await bookApi.uploadExcel(data, config);
+        this.uploadExcelLoading = false;
+        if (res.errorCode === 200) {
+          this.$message({
+            message: "提交成功",
+            type: "success"
+          });
+          this.showEditFormDialog = false;
+          this.getBookList();
+        } else {
+          this.$alert(res.errorMsg, "提示", {
+            dangerouslyUseHTMLString: true
+          });
+        }
+      } catch (error) {
+        this.uploadExcelLoading = false;
+        handleError(error);
+      }
+    },
+    // 下载模板zip
+    async downloadFile() {
+      let params = {};
+      let config = {
+        responseType: "blob",
+        headers: { filename: "utf-8" }
+      };
+      try {
+        let data = await bookApi.downloadBookTemplate(params, config);
+        let blob = new Blob([data], {
+          type: "application/zip"
+        });
+        let objectUrl = window.URL.createObjectURL(blob);
+        let downloadElement = document.createElement("a");
+        downloadElement.href = objectUrl;
+        downloadElement.download = `上传模板.zip`;
+        document.body.appendChild(downloadElement);
+        downloadElement.click();
+        document.body.removeChild(downloadElement);
+        window.URL.revokeObjectURL(objectUrl);
+      } catch (error) {
+        handleError(error);
+      }
+    },
+    // 新增图书
+    addBook() {
+      this.isEdit = false;
+      this.uploadFile = "";
+      this.previewBase64 = "";
+      this.editStock = 0;
+      this.editData = {
+        name: "",
+        author: "",
+        press: "",
+        classify: [],
+        title: "",
+        description: "",
+        stock: "",
+        price: "",
+        salePrice: "",
+        isSell: true,
+        imageUrl: ""
+      };
+      this.showEditFormDialog = true;
     },
     // 查看大图
     showImgDialogFun(imageUrl, isBase64) {
@@ -548,11 +828,29 @@ export default {
     },
     // 关闭弹框
     closeDialog() {
-      this.$refs["editDataForm"].clearValidate();
+      this.$refs["editDataForm"] && this.$refs["editDataForm"].clearValidate();
+      this.$refs["editStockForm"] &&
+        this.$refs["editStockForm"].clearValidate();
     },
     // url加上时间参数
     getTimeUrl() {
       return `?t=${new Date().getTime()}`;
+    },
+    // 数字校验
+    numRegFun(rule, value, callback) {
+      if (!/\d+/.test(value)) {
+        callback(new Error("请输入正确的数字,需大于0"));
+      } else {
+        callback();
+      }
+    },
+    // 库存修改校验
+    changeStockRegFun(rule, value, callback) {
+      if (this.editStock === 0) {
+        callback(new Error("请更改库存值"));
+      } else {
+        callback();
+      }
     },
     // 小数校验
     decimalRegFun(rule, value, callback) {
@@ -597,7 +895,7 @@ export default {
   .el-pagination
     margin-top 20px
 
-.el-dialog__body
+.el-dialog-edit
   .el-form
     height 400px
     padding 10px
@@ -605,9 +903,6 @@ export default {
 
     .el-select
       width 100%
-
-  .el-input-number
-    margin-left 10px
 
   .preview
     display flex
@@ -621,6 +916,10 @@ export default {
     img
       cursor pointer
       max-width 300px
+
+.edit-stock
+  .el-input-number
+    margin-left 10px
 
 .dialog-img
   display flex
