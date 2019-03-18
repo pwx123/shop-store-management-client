@@ -140,7 +140,7 @@
         <el-table-column fixed="right"
           align="center"
           label="操作"
-          width="180">
+          width="140">
           <template slot-scope="scope">
             <el-button type="text"
               size="mini"
@@ -440,6 +440,7 @@ export default {
       uploadFile: "",
       // 修改库存弹框
       editStockDialog: false,
+      // 增加库存 删除库存 单选
       radioSwitch: 0,
       // 展示查看大图
       showImgDialog: false,
@@ -655,17 +656,24 @@ export default {
     radioChange(val) {
       this.editStock = 0;
       this.$refs["editStockForm"].clearValidate();
-      console.log(val);
     },
     // 提交库存修改
     submitEditStock(formName) {
       this.$refs[formName].validate(async valid => {
         if (valid) {
           try {
-            let res = await bookApi.updateBookStock({
+            let obj = {
+              type: this.radioSwitch,
               id: this.editData.id,
-              changeStock: this.editStock
-            });
+              changeStock: this.editStock,
+              name: this.editData.name
+            }
+            if (this.radioSwitch == 1){
+              obj.remark = this.editData.remark;
+            } else {
+              obj.stockPrice = this.editData.stockPrice;
+            }
+            let res = await bookApi.updateBookStock(obj);
             this.editStockDialog = false;
             if (res.errorCode === 200) {
               this.$message({
@@ -690,6 +698,7 @@ export default {
       this.editStockDialog = true;
       this.editStock = 0;
       this.editData = Object.assign({}, row);
+      this.editData.stockPrice = '';
       this.editData.remark = "";
     },
     // 选择图片

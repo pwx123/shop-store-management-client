@@ -13,3 +13,4 @@ export const uploadExcel = (params, config) => post('/book/uploadExcel', params,
 export const downloadBookTemplate = (params, config) => post('/book/downloadBookTemplate', params, config);
 export const changeBookSellStatus = params => post('/book/changeBookSellStatus', params);
 export const updateBookStock = params => post('/book/updateBookStock', params);
+export const getStockRecordList = params => post('/book/getStockRecordList', params);

@@ -11,18 +11,18 @@
         :editable="false"
         :clearable="false"
         :default-time="['00:00:00', '23:59:59']"></el-date-picker>
-      <el-select v-model="searchParam.optionType"
+      <el-select v-model="searchParam.type"
         size="medium"
-        placeholder="操作类型"
+        placeholder="类型"
         clearable>
-        <el-option v-for="item in optionType"
+        <el-option v-for="item in type"
           :key="item.value"
           :value="item.value"
           :label="item.label"></el-option>
       </el-select>
-      <el-input placeholder="操作账号/人"
+      <el-input placeholder="书籍名称"
         size="medium"
-        v-model="searchParam.name"
+        v-model="searchParam.bookName"
         clearable
         @keyup.native.enter="search"></el-input>
     </div>
@@ -42,19 +42,19 @@
         :header-cell-style="{background: '#fdfdfd'}"
         :height="460"
         border>
-        <el-table-column prop="optionName"
+        <el-table-column prop="bookName"
           align="center"
-          label="操作账号"
+          label="书籍名称"
           width="160"></el-table-column>
-        <el-table-column prop="optionNickname"
+        <el-table-column prop="stockNum"
           align="center"
-          label="操作人"
+          label="进货数量"
           width="160"></el-table-column>
         <el-table-column align="center"
-          label="操作类型"
-          width="140"
-          clearable><template slot-scope="scope">
-            <span>{{optionTypeMap[scope.row.optionType]}}</span>
+          label="进货价"
+          width="160">
+          <template slot-scope="scope">
+            {{scope.row.stockPrice || '--'}}
           </template></el-table-column>
         <el-table-column prop="remark"
           align="center"
@@ -62,7 +62,7 @@
           label="备注"></el-table-column>
         <el-table-column prop="createdAt"
           align="center"
-          label="操作时间"
+          label="进货时间"
           width="180"></el-table-column>
       </el-table>
       <el-pagination background
@@ -78,7 +78,7 @@
 </template>
 
 <script>
-import { getOptionRecord } from "./../../api/shop";
+import { getStockRecordList } from "./../../api/bookList";
 import { timeFormat, getDatePickerTime, handleError } from "./../../util/util";
 
 export default {
@@ -98,30 +98,30 @@ export default {
         pageSize: 15,
         startTime: "",
         endTime: "",
-        optionType: "",
-        name: ""
+        type: "",
+        bookName: ""
       },
-      optionType: [
+      type: [
         {
           value: 0,
-          label: "店铺名"
+          label: "新进图书"
         },
         {
           value: 1,
-          label: "店铺状态"
+          label: "增加库存"
         },
         {
           value: 2,
-          label: "店铺介绍"
+          label: "删除库存"
         }
       ]
     };
   },
   computed: {
-    optionTypeMap() {
+    typeMap() {
       let obj = {};
-      for (let i = 0, len = this.optionType.length; i < len; i++) {
-        obj[this.optionType[i].value] = this.optionType[i].label;
+      for (let i = 0, len = this.type.length; i < len; i++) {
+        obj[this.type[i].value] = this.type[i].label;
       }
       return obj;
     }
@@ -129,20 +129,20 @@ export default {
   created() {
     // 默认查一个月的
     this.dataPicker = getDatePickerTime(30);
-    this.getShopOptionRecord();
+    this.getShopStockRecord();
   },
   methods: {
     // 执行搜索
     search() {
-      this.getShopOptionRecord();
+      this.getShopStockRecord();
     },
     // 获取表格数据
-    async getShopOptionRecord() {
+    async getShopStockRecord() {
       this.searchParam.startTime = this.dataPicker[0];
       this.searchParam.endTime = this.dataPicker[1];
       try {
         this.loading = true;
-        let res = await getOptionRecord(this.searchParam);
+        let res = await getStockRecordList(this.searchParam);
         this.loading = false;
         if (res.errorCode === 200) {
           this.tableData = res.data.rows;
@@ -166,20 +166,20 @@ export default {
         pageSize: 15,
         startTime: "",
         endTime: "",
-        optionType: "",
-        name: ""
+        type: "",
+        bookName: ""
       };
-      this.getShopOptionRecord();
+      this.getShopStockRecord();
     },
     // 每页页数变化
     handleSizeChange(val) {
       this.searchParam.pageSize = val;
-      this.getShopOptionRecord();
+      this.getShopStockRecord();
     },
     // 页码变化
     handleCurrentChange(val) {
       this.searchParam.pageNumber = val;
-      this.getShopOptionRecord();
+      this.getShopStockRecord();
     }
   }
 };
