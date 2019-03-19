@@ -53,7 +53,7 @@
         border>
         <el-table-column prop="name"
           align="center"
-          label="用户手机号"
+          label="用户账号"
           width="140"></el-table-column>
         <el-table-column prop="nickname"
           align="center"

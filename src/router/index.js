@@ -92,7 +92,7 @@ export default new Router({
       path: '/index',
       component: Home,
       name: '进货管理',
-      iconCls: 'iconfont icon-jinhuorukux',
+      iconCls: 'iconfont icon-jinhuodan',
       children: [{
         path: '/index/stockPurchase',
         component: StockPurchase,

@@ -52,10 +52,11 @@
           width="160"></el-table-column>
         <el-table-column align="center"
           label="操作类型"
-          width="140"
-          clearable><template slot-scope="scope">
+          width="140">
+          <template slot-scope="scope">
             <span>{{optionTypeMap[scope.row.optionType]}}</span>
-          </template></el-table-column>
+          </template>
+        </el-table-column>
         <el-table-column prop="remark"
           align="center"
           min-width="300"
