@@ -3,7 +3,7 @@
     <div class="filter-search">
       <el-input placeholder="分类名称"
         size="medium"
-        v-model="filterName"
+        v-model.trim="filterName"
         clearable
         @keyup.native.enter="filterByName">
       </el-input>

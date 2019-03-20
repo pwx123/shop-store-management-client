@@ -31,7 +31,7 @@
       </el-select>
       <el-input placeholder="用户名/手机号"
         size="medium"
-        v-model="searchParam.name"
+        v-model.trim="searchParam.name"
         clearable
         @keyup.native.enter="search"></el-input>
     </div>
@@ -280,6 +280,7 @@ export default {
   methods: {
     // 执行搜索
     search() {
+      this.searchParam.pageNumber = 1;
       this.getUserList();
     },
     // 获取表格数据

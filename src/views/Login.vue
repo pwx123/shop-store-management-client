@@ -18,13 +18,13 @@
           label-width="80px">
           <el-form-item label="登陆账号"
             prop="name">
-            <el-input v-model="formData.name"
+            <el-input v-model.trim="formData.name"
               maxlength="11"
               placeholder="请输入登陆手机号"></el-input>
           </el-form-item>
           <el-form-item label="登陆密码"
             prop="pwd">
-            <el-input v-model="formData.pwd"
+            <el-input v-model.trim="formData.pwd"
               maxlength="16"
               placeholder="请输入密码"
               type="password"></el-input>

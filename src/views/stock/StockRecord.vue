@@ -22,7 +22,7 @@
       </el-select>
       <el-input placeholder="书籍名称"
         size="medium"
-        v-model="searchParam.bookName"
+        v-model.trim="searchParam.bookName"
         clearable
         @keyup.native.enter="search"></el-input>
     </div>
@@ -134,6 +134,7 @@ export default {
   methods: {
     // 执行搜索
     search() {
+      this.searchParam.pageNumber = 1;
       this.getShopStockRecord();
     },
     // 获取表格数据

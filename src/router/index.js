@@ -9,6 +9,7 @@ const Register = () => import( /* webpackChunkName: "Register" */ '@/views/Regis
 const Home = () => import( /* webpackChunkName: "Home" */ '@/views/home/Home');
 const Index = () => import( /* webpackChunkName: "Index" */ '@/views/index/Index');
 const OrderList = () => import( /* webpackChunkName: "OrderList" */ '@/views/order/OrderList');
+const DeliveryCompany = () => import( /* webpackChunkName: "DeliveryCompany" */ '@/views/order/DeliveryCompany');
 const UserList = () => import( /* webpackChunkName: "UserList" */ '@/views/user/UserList');
 const BookList = () => import( /* webpackChunkName: "BookList" */ '@/views/book/BookList');
 const BookClassify = () => import( /* webpackChunkName: "BookClassify" */ '@/views/book/BookClassify');
@@ -58,6 +59,10 @@ export default new Router({
         path: '/index/orderList',
         component: OrderList,
         name: '订单列表'
+      }, {
+        path: '/index/deliveryCompany',
+        component: DeliveryCompany,
+        name: '物流公司列表'
       }]
     },
     {

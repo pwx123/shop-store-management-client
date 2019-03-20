@@ -13,17 +13,17 @@
         :default-time="['00:00:00', '23:59:59']"></el-date-picker>
       <el-input placeholder="书名"
         size="medium"
-        v-model="searchParam.name"
+        v-model.trim="searchParam.name"
         clearable
         @keyup.native.enter="search"></el-input>
       <el-input placeholder="作者"
         size="medium"
-        v-model="searchParam.author"
+        v-model.trim="searchParam.author"
         clearable
         @keyup.native.enter="search"></el-input>
       <el-input placeholder="出版社"
         size="medium"
-        v-model="searchParam.press"
+        v-model.trim="searchParam.press"
         clearable
         @keyup.native.enter="search"></el-input>
     </div>
@@ -322,7 +322,7 @@
               placement="top">
               <i class="el-icon-info"></i>
             </el-tooltip>
-            <el-input-number v-model="editStock"
+            <el-input-number v-model.trim="editStock"
               size="small"
               :min="0"
               :step="1"></el-input-number>
@@ -335,7 +335,7 @@
               placement="top">
               <i class="el-icon-info"></i>
             </el-tooltip>
-            <el-input-number v-model="editStock"
+            <el-input-number v-model.trim="editStock"
               size="small"
               :min="-editData.stock"
               :max="0"
@@ -346,13 +346,13 @@
           prop="stockPrice"
           label-width="80px"
           v-if="radioSwitch == 0">
-          <el-input v-model="editData.stockPrice"></el-input>
+          <el-input v-model.trim="editData.stockPrice"></el-input>
         </el-form-item>
         <el-form-item label="备注"
           prop="remark"
           label-width="80px"
           v-if="radioSwitch == 1">
-          <el-input v-model="editData.remark"
+          <el-input v-model.trim="editData.remark"
             type="textarea"
             resize="none"
             rows="3"></el-input>
@@ -481,6 +481,7 @@ export default {
   methods: {
     // 执行搜索
     search() {
+      this.searchParam.pageNumber = 1;
       this.getBookList();
     },
     // 获取表格数据

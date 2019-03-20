@@ -13,17 +13,17 @@
         :default-time="['00:00:00', '23:59:59']"></el-date-picker>
       <el-input placeholder="书名"
         size="medium"
-        v-model="searchParam.name"
+        v-model.trim="searchParam.name"
         clearable
         @keyup.native.enter="search"></el-input>
       <el-input placeholder="作者"
         size="medium"
-        v-model="searchParam.author"
+        v-model.trim="searchParam.author"
         clearable
         @keyup.native.enter="search"></el-input>
       <el-input placeholder="出版社"
         size="medium"
-        v-model="searchParam.press"
+        v-model.trim="searchParam.press"
         clearable
         @keyup.native.enter="search"></el-input>
     </div>
@@ -350,6 +350,7 @@ export default {
   methods: {
     // 执行搜索
     search() {
+      this.searchParam.pageNumber = 1;
       this.getBookList();
     },
     // 获取表格数据
