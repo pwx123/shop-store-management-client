@@ -70,14 +70,38 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="orderId"
-          align="center"
+        <el-table-column align="center"
           label="订单号"
-          width="140"></el-table-column>
-        <el-table-column prop="userName"
-          align="center"
+          width="140">
+          <template slot-scope="scope">
+            <el-tooltip effect="dark"
+              content="点击复制"
+              placement="top"
+              :enterable="false">
+              <span v-clipboard:copy="scope.row.orderId"
+                v-clipboard:success="onCopySuccess"
+                v-clipboard:error="onCopyError">
+                {{scope.row.orderId}}
+              </span>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+        <el-table-column align="center"
           label="用户账号"
-          width="140"></el-table-column>
+          width="140">
+          <template slot-scope="scope">
+            <el-tooltip effect="dark"
+              content="点击复制"
+              placement="top"
+              :enterable="false">
+              <span v-clipboard:copy="scope.row.userName"
+                v-clipboard:success="onCopySuccess"
+                v-clipboard:error="onCopyError">
+                {{scope.row.userName}}
+              </span>
+            </el-tooltip>
+          </template>
+        </el-table-column>
         <el-table-column align="center"
           label="状态"
           width="120">
@@ -130,7 +154,16 @@
           label="快递单号">
           <template slot-scope="scope">
             <template v-if="scope.row.deliveryOrderId === 0 || scope.row.deliveryOrderId">
-              <span>{{scope.row.deliveryOrderId}}</span>
+              <el-tooltip effect="dark"
+                content="点击复制"
+                placement="top"
+                :enterable="false">
+                <span v-clipboard:copy="scope.row.deliveryOrderId"
+                  v-clipboard:success="onCopySuccess"
+                  v-clipboard:error="onCopyError">
+                  {{scope.row.deliveryOrderId}}
+                </span>
+              </el-tooltip>
               <el-button type="text"
                 v-if="scope.row.status === 3"
                 size="mini"
@@ -147,7 +180,32 @@
           width="120"
           label="收货地址">
           <template slot-scope="scope">
-            <span>{{scope.row.deliveryAddressId || '--'}}</span>
+            <el-popover placement="top"
+              :key="scope.row.id"
+              @show="showAddress(scope.row)">
+              <div class="show-address">
+                <p>
+                  <span>收货人：</span>
+                  <span>{{orderAddress.deliveryName}}</span>
+                </p>
+                <p>
+                  <span>手机号：</span>
+                  <span>{{orderAddress.deliveryMobile}}</span>
+                </p>
+                <p>
+                  <span>收货地址：</span>
+                  <span>{{`${orderAddress.provinceName} ${orderAddress.cityName} ${orderAddress.countryName} ${orderAddress.detailAddress}`}}</span>
+                </p>
+                <p>
+                  <el-button type="primary"
+                    size="mini"
+                    @click.native="editOrderAddress(scope.row)">修改</el-button>
+                </p>
+              </div>
+              <el-button type="text"
+                slot="reference"
+                size="mini">查看</el-button>
+            </el-popover>
           </template>
         </el-table-column>
         <el-table-column prop="createdAt"
@@ -209,11 +267,116 @@
           @click="submitDeliveryInfo('addDelivery')">确 定</el-button>
       </span>
     </el-dialog>
+    <el-dialog class="address-dialog"
+      title="修改收货地址"
+      width="600px"
+      :visible.sync="editAddressDialog">
+      <el-dialog width="500px"
+        title="新增收货地址"
+        :visible.sync="addAddressDialog"
+        append-to-body>
+        <el-form ref="addAddress"
+          label-width="80px"
+          :model="addAddressInfo"
+          :rules="addAddressInfoValidate">
+          <el-form-item prop="deliveryName"
+            label="收货人">
+            <el-input v-model.trim="addAddressInfo.deliveryName"
+              placeholder="请输入收货人姓名"
+              maxlength="20"
+              autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item prop="deliveryName"
+            label="手机号">
+            <el-input v-model.trim="addAddressInfo.deliveryName"
+              placeholder="请输入收货人手机号"
+              maxlength="40"
+              autocomplete="off"></el-input>
+          </el-form-item>
+          <el-form-item prop="deliveryId"
+            label="地址">
+            <!-- TODO: 添加收货地址-->
+            <div class="select-group">
+              <el-select placeholder="请选择省"
+                v-model.trim="addAddressInfo.deliveryId"
+                clearable>
+                <el-option v-for="item in deliveryCompanyData"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"></el-option>
+              </el-select>
+              <el-select placeholder="请选择市"
+                v-model.trim="addAddressInfo.deliveryId"
+                clearable>
+                <el-option v-for="item in deliveryCompanyData"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"></el-option>
+              </el-select>
+              <el-select placeholder="请选择县"
+                v-model.trim="addAddressInfo.deliveryId"
+                clearable>
+                <el-option v-for="item in deliveryCompanyData"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"></el-option>
+              </el-select>
+            </div>
+          </el-form-item>
+          <el-form-item prop="detailAddress"
+            label="详细地址">
+            <el-input v-model.trim="addAddressInfo.detailAddress"
+              type="textarea"
+              resize="none"
+              rows="3"
+              placeholder="请输入详细地址"
+              maxlength="255"
+              autocomplete="off"></el-input>
+          </el-form-item>
+        </el-form>
+      </el-dialog>
+      <el-button class="add-address"
+        type="primary"
+        size="mini"
+        @click="addAddressDialog = true">新增</el-button>
+      <div class="edit-address">
+        <div v-for="item in userAddressList"
+          :class="'address-list' + (item.id === selectAddress ? ' active' : '')"
+          :key="item.id"
+          @click="selectAddressRadio(item.id)">
+          <el-radio :label="item.id"
+            v-model="selectAddress">&nbsp;
+          </el-radio>
+          <div class="address">
+            <p>
+              <span class="show-address-label">收货人：</span>
+              <span class="show-address-content">{{item.deliveryName}}</span>
+            </p>
+            <p>
+              <span class="show-address-label">手机号：</span>
+              <span class="show-address-content">{{item.deliveryMobile}}</span>
+            </p>
+            <p>
+              <span class="show-address-label">收货地址：</span>
+              <span class="show-address-content">{{`${item.provinceName} ${item.cityName} ${item.countryName} ${item.detailAddress}`}}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div slot="footer">
+        <el-button size="small"
+          @click="editAddressDialog = false">取 消</el-button>
+        <el-button type="primary"
+          size="small"
+          @click="submitEditAddress">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import * as orderApi from "./../../api/order";
+import { getOrderAddressById, getUserDeliveryAddress } from "./../../api/user";
 import { timeFormat, getDatePickerTime, handleError } from "./../../util/util";
 
 export default {
@@ -233,12 +396,26 @@ export default {
       deliveryCompanyData: [],
       // 上传物流弹窗
       addDeliveryInfoDialog: false,
+      // 修改收货地址弹窗
+      editAddressDialog: false,
+      // 新增收货地址弹窗
+      addAddressDialog: false,
+      // 用户地址列表
+      userAddressList: [],
+      // 选择收货地址
+      selectAddress: "",
+      // 修改的订单id
+      editOrderId: "",
       // 上传物流信息
       deliveryInfo: {
         id: "",
         deliveryId: "",
         deliveryOrderId: ""
       },
+      // 新增收货地址数据
+      addAddressInfo: {},
+      // 收货地址
+      orderAddress: "",
       // 是否编辑物流
       isEditDelivery: false,
       // 上传物流校验
@@ -254,6 +431,8 @@ export default {
           }
         ]
       },
+      // 新增收货地址校验
+      addAddressInfoValidate: {},
       // 搜索参数
       searchParam: {
         pageNumber: 1,
@@ -473,6 +652,79 @@ export default {
       }
       this.addDeliveryInfoDialog = true;
     },
+    // 展示收货地址
+    async showAddress(row) {
+      try {
+        this.selectAddress = "";
+        this.editOrderId = "";
+        let res = await getOrderAddressById({ id: row.deliveryAddressId });
+        if (res.errorCode === 200) {
+          this.orderAddress = res.data;
+        } else {
+          this.$message({
+            message: res.errorMsg,
+            type: "error"
+          });
+        }
+      } catch (error) {
+        handleError(error);
+      }
+    },
+    // 修改收货地址
+    async editOrderAddress(row) {
+      try {
+        this.selectAddress = row.deliveryAddressId;
+        this.editAddressDialog = true;
+        this.editOrderId = row.id;
+        let res = await getUserDeliveryAddress({ userId: row.id });
+        if (res.errorCode === 200) {
+          this.userAddressList = res.data;
+        } else {
+          this.$message({
+            message: res.errorMsg,
+            type: "error"
+          });
+        }
+      } catch (error) {
+        handleError(error);
+      }
+    },
+    // 提交修改收货地址
+    async submitEditAddress() {
+      if (this.selectAddress == "") {
+        this.$message({
+          message: "请选择收货地址",
+          type: "error"
+        });
+        return false;
+      }
+      let obj = {
+        id: this.editOrderId,
+        deliveryAddressId: this.selectAddress
+      };
+      try {
+        let res = await orderApi.updateOrderAddress(obj);
+        this.editAddressDialog = false;
+        if (res.errorCode === 200) {
+          this.$message({
+            message: "修改成功",
+            type: "success"
+          });
+          this.getOrderList();
+        } else {
+          this.$message({
+            message: res.errorMsg,
+            type: "error"
+          });
+        }
+      } catch (error) {
+        handleError(error);
+      }
+    },
+    // 选择收货地址
+    selectAddressRadio(id) {
+      this.selectAddress = id;
+    },
     // 展开表格行
     expandColumn(row) {
       this.$refs["orderTable"].toggleRowExpansion(row);
@@ -518,6 +770,20 @@ export default {
     handleCurrentChange(val) {
       this.searchParam.pageNumber = val;
       this.getOrderList();
+    },
+    // 复制成功
+    onCopySuccess() {
+      this.$message({
+        message: "复制成功",
+        type: "success"
+      });
+    },
+    // 复制失败
+    onCopyError() {
+      this.$message({
+        message: "复制失败，请尝试手动复制",
+        type: "error"
+      });
     }
   }
 };
@@ -575,4 +841,48 @@ export default {
 .delivery-dialog
   .el-select
     width 100%
+
+.select-group
+  display flex
+  width 100%
+  justify-content space-between
+
+  .el-select
+    width 118px
+
+.show-address
+  padding 0 10px
+
+  p:last-child
+    text-align right
+
+.address-dialog
+  .add-address
+    position absolute
+    right 40px
+    top 50px
+
+  .edit-address
+    height 300px
+    padding 10px
+    overflow-y scroll
+
+    .address-list
+      display flex
+      align-items center
+      border 1px dashed #ccc
+      border-radius 10px
+      padding 2px 16px
+      margin-bottom 10px
+      cursor pointer
+
+      &.active
+        border-color #409eff
+        color #409eff
+
+      p
+        margin 8px 0
+
+      .el-radio
+        margin-right 0
 </style>

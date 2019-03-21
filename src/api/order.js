@@ -6,6 +6,7 @@ export const getOrderList = params => post('/order/getOrderList', params);
 export const submitOrder = params => post('/order/submitOrder', params);
 export const submitDeliveryInfo = params => post('/order/submitDeliveryInfo', params);
 export const getAllDeliveryCompany = () => post('/order/getAllDeliveryCompany');
+export const updateOrderAddress = params => post('/order/updateOrderAddress', params);
 export const deleteDeliveryCompany = params => post('/order/deleteDeliveryCompany', params);
 export const addDeliveryCompany = params => post('/order/addDeliveryCompany', params);
 export const uploadDeliveryExcel = (params, config) => post('/order/uploadDeliveryExcel', params, config);

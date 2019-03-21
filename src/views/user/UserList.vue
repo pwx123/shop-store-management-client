@@ -174,7 +174,8 @@
     </el-dialog>
     <el-dialog width="400px"
       title="重置成功"
-      :visible.sync="resetPwdDialog">
+      :visible.sync="resetPwdDialog"
+      append-to-body>
       <div class="reset-pwd">
         <span>新密码：</span>
         <span class="new-pwd">{{newPwd}}</span>
@@ -335,7 +336,7 @@ export default {
     // 重置密码
     resetPwd(row) {
       this.$confirm(
-        `确定 重置用户 <span style="color:#409eff">${name}</span> 的密码吗？`,
+        `确定 重置用户 <span style="color:#409eff">${row.name}</span> 的密码吗？`,
         "提示",
         {
           type: "warning",
@@ -349,10 +350,6 @@ export default {
             });
             if (res.errorCode === 200) {
               let newPwd = Base64.decode(res.data.newPwd);
-              this.$message({
-                message: "重置成功",
-                type: "success"
-              });
               this.resetPwdDialog = true;
               this.newPwd = newPwd;
               this.getUserList();
