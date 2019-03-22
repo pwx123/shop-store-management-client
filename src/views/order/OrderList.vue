@@ -198,6 +198,7 @@
                 </p>
                 <p>
                   <el-button type="primary"
+                    v-if="scope.row.status === 1 || scope.row.status === 2 || scope.row.status === 3"
                     size="mini"
                     @click.native="editOrderAddress(scope.row)">修改</el-button>
                 </p>
@@ -286,40 +287,39 @@
               maxlength="20"
               autocomplete="off"></el-input>
           </el-form-item>
-          <el-form-item prop="deliveryName"
+          <el-form-item prop="deliveryMobile"
             label="手机号">
-            <el-input v-model.trim="addAddressInfo.deliveryName"
+            <el-input v-model.trim="addAddressInfo.deliveryMobile"
+              type="tel"
               placeholder="请输入收货人手机号"
-              maxlength="40"
+              maxlength="20"
               autocomplete="off"></el-input>
           </el-form-item>
-          <el-form-item prop="deliveryId"
+          <el-form-item prop="area"
             label="地址">
-            <!-- TODO: 添加收货地址-->
             <div class="select-group">
               <el-select placeholder="请选择省"
-                v-model.trim="addAddressInfo.deliveryId"
-                clearable>
-                <el-option v-for="item in deliveryCompanyData"
-                  :key="item.id"
+                v-model.trim="addAddressInfo.provinceId"
+                @change="handleProvinceChange">
+                <el-option v-for="item in areaData.province"
+                  :key="item.provinceId"
                   :label="item.name"
-                  :value="item.id"></el-option>
+                  :value="item.provinceId"></el-option>
               </el-select>
               <el-select placeholder="请选择市"
-                v-model.trim="addAddressInfo.deliveryId"
-                clearable>
-                <el-option v-for="item in deliveryCompanyData"
-                  :key="item.id"
+                v-model.trim="addAddressInfo.cityId"
+                @change="handleCityChange">
+                <el-option v-for="item in areaData.city"
+                  :key="item.cityId"
                   :label="item.name"
-                  :value="item.id"></el-option>
+                  :value="item.cityId"></el-option>
               </el-select>
               <el-select placeholder="请选择县"
-                v-model.trim="addAddressInfo.deliveryId"
-                clearable>
-                <el-option v-for="item in deliveryCompanyData"
-                  :key="item.id"
+                v-model.trim="addAddressInfo.countryId">
+                <el-option v-for="item in areaData.country"
+                  :key="item.countryId"
                   :label="item.name"
-                  :value="item.id"></el-option>
+                  :value="item.countryId"></el-option>
               </el-select>
             </div>
           </el-form-item>
@@ -334,11 +334,18 @@
               autocomplete="off"></el-input>
           </el-form-item>
         </el-form>
+        <div slot="footer">
+          <el-button size="small"
+            @click="addAddressDialog = false">取 消</el-button>
+          <el-button type="primary"
+            size="small"
+            @click="submitAddAddress('addAddress')">确 定</el-button>
+        </div>
       </el-dialog>
       <el-button class="add-address"
         type="primary"
         size="mini"
-        @click="addAddressDialog = true">新增</el-button>
+        @click="addAddressBtnClick">新增</el-button>
       <div class="edit-address">
         <div v-for="item in userAddressList"
           :class="'address-list' + (item.id === selectAddress ? ' active' : '')"
@@ -377,6 +384,11 @@
 <script>
 import * as orderApi from "./../../api/order";
 import { getOrderAddressById, getUserDeliveryAddress } from "./../../api/user";
+import {
+  getProvince,
+  getCityByProvince,
+  getCountryByCity
+} from "./../../api/common";
 import { timeFormat, getDatePickerTime, handleError } from "./../../util/util";
 
 export default {
@@ -404,8 +416,8 @@ export default {
       userAddressList: [],
       // 选择收货地址
       selectAddress: "",
-      // 修改的订单id
-      editOrderId: "",
+      // 修改的订单
+      editRow: "",
       // 上传物流信息
       deliveryInfo: {
         id: "",
@@ -413,11 +425,24 @@ export default {
         deliveryOrderId: ""
       },
       // 新增收货地址数据
-      addAddressInfo: {},
+      addAddressInfo: {
+        deliveryName: "",
+        deliveryMobile: "",
+        provinceId: "",
+        cityId: "",
+        countryId: "",
+        detailAddress: ""
+      },
       // 收货地址
       orderAddress: "",
       // 是否编辑物流
       isEditDelivery: false,
+      // 省市县信息
+      areaData: {
+        province: [],
+        city: [],
+        country: []
+      },
       // 上传物流校验
       deliveryInfoValidate: {
         deliveryId: [
@@ -432,7 +457,22 @@ export default {
         ]
       },
       // 新增收货地址校验
-      addAddressInfoValidate: {},
+      addAddressInfoValidate: {
+        deliveryName: [
+          { required: true, message: "请输入收货人姓名", trigger: "blur" }
+        ],
+        deliveryMobile: [
+          {
+            required: true,
+            validator: this.deliveryMobileReg,
+            trigger: "blur"
+          }
+        ],
+        area: [{ required: true, validator: this.areaReg, trigger: "change" }],
+        detailAddress: [
+          { required: true, message: "请输入详细地址", trigger: "blur" }
+        ]
+      },
       // 搜索参数
       searchParam: {
         pageNumber: 1,
@@ -525,6 +565,7 @@ export default {
     this.dataPicker = getDatePickerTime(30);
     this.getOrderList();
     this.getAllDeliveryCompany();
+    this.getProvinceInfo();
   },
   methods: {
     // 执行搜索
@@ -612,8 +653,12 @@ export default {
           try {
             let res = await orderApi.submitDeliveryInfo(this.deliveryInfo);
             if (res.errorCode === 200) {
+              let str = "上传成功，状态已更改为已发货";
+              if (this.isEditDelivery) {
+                str = '修改成功'
+              }
               this.$message({
-                message: "上传成功，状态已更改为已发货",
+                message: str,
                 type: "success"
               });
               this.addDeliveryInfoDialog = false;
@@ -656,7 +701,7 @@ export default {
     async showAddress(row) {
       try {
         this.selectAddress = "";
-        this.editOrderId = "";
+        this.editRow = "";
         let res = await getOrderAddressById({ id: row.deliveryAddressId });
         if (res.errorCode === 200) {
           this.orderAddress = res.data;
@@ -675,8 +720,8 @@ export default {
       try {
         this.selectAddress = row.deliveryAddressId;
         this.editAddressDialog = true;
-        this.editOrderId = row.id;
-        let res = await getUserDeliveryAddress({ userId: row.id });
+        this.editRow = row;
+        let res = await getUserDeliveryAddress({ userId: row.userId });
         if (res.errorCode === 200) {
           this.userAddressList = res.data;
         } else {
@@ -699,7 +744,7 @@ export default {
         return false;
       }
       let obj = {
-        id: this.editOrderId,
+        id: this.editRow.id,
         deliveryAddressId: this.selectAddress
       };
       try {
@@ -720,6 +765,107 @@ export default {
       } catch (error) {
         handleError(error);
       }
+    },
+    // 获取省份信息
+    async getProvinceInfo() {
+      try {
+        let res = await getProvince();
+        if (res.errorCode === 200) {
+          this.areaData.province = res.data;
+        } else {
+          this.$message({
+            message: res.errorMsg,
+            type: "error"
+          });
+        }
+      } catch (error) {
+        handleError(error);
+      }
+    },
+    // 根据省份获取市信息
+    async handleProvinceChange(val) {
+      try {
+        this.addAddressInfo.cityId = "";
+        this.addAddressInfo.countryId = "";
+        let res = await getCityByProvince({ provinceId: val });
+        if (res.errorCode === 200) {
+          this.areaData.city = res.data;
+        } else {
+          this.$message({
+            message: res.errorMsg,
+            type: "error"
+          });
+        }
+      } catch (error) {
+        handleError(error);
+      }
+    },
+    // 根据市获取县信息
+    async handleCityChange(val) {
+      try {
+        this.addAddressInfo.countryId = "";
+        let res = await getCountryByCity({ cityId: val });
+        if (res.errorCode === 200) {
+          this.areaData.country = res.data;
+        } else {
+          this.$message({
+            message: res.errorMsg,
+            type: "error"
+          });
+        }
+      } catch (error) {
+        handleError(error);
+      }
+    },
+    // 提交新增收货地址
+    async submitAddAddress(formName) {
+      this.$refs[formName].validate(async valid => {
+        if (valid) {
+          try {
+            let res = await orderApi.submitAddAddress({
+              ...this.addAddressInfo,
+              userId: this.editRow.userId
+            });
+            this.addAddressDialog = false;
+            if (res.errorCode === 200) {
+              this.$message({
+                message: "添加成功",
+                type: "success"
+              });
+              let resAddress = await getUserDeliveryAddress({
+                userId: this.editRow.userId
+              });
+              if (resAddress.errorCode === 200) {
+                this.userAddressList = resAddress.data;
+              } else {
+                this.$message({
+                  message: res.errorMsg,
+                  type: "error"
+                });
+              }
+            } else {
+              this.$message({
+                message: res.errorMsg,
+                type: "error"
+              });
+            }
+          } catch (error) {
+            handleError(error);
+          }
+        }
+      });
+    },
+    addAddressBtnClick() {
+      this.addAddressDialog = true;
+      (this.addAddressInfo = {
+        deliveryName: "",
+        deliveryMobile: "",
+        provinceId: "",
+        cityId: "",
+        countryId: "",
+        detailAddress: ""
+      }),
+        this.$refs["addAddress"] && this.$refs["addAddress"].clearValidate();
     },
     // 选择收货地址
     selectAddressRadio(id) {
@@ -742,6 +888,28 @@ export default {
         userName: ""
       };
       this.getOrderList();
+    },
+    // 收货手机号校验
+    deliveryMobileReg(rule, value, callback) {
+      if (value == "") {
+        callback(new Error("请输入收货人手机号"));
+      } else if (/[\u4E00-\u9FA5]/i.test(value)) {
+        callback(new Error("请输入正确的收货人手机号"));
+      } else {
+        callback();
+      }
+    },
+    // 省市信息校验
+    areaReg(rule, value, callback) {
+      if (this.addAddressInfo.provinceId == "") {
+        callback(new Error("请选择省份"));
+      } else if (this.addAddressInfo.cityId == "") {
+        callback(new Error("请选择市"));
+      } else if (this.addAddressInfo.countryId == "") {
+        callback(new Error("请选择区/县"));
+      } else {
+        callback();
+      }
     },
     // 物流单号校验
     deliveryOrderIdReg(rule, value, callback) {

@@ -5,6 +5,7 @@ import {
 export const getOrderList = params => post('/order/getOrderList', params);
 export const submitOrder = params => post('/order/submitOrder', params);
 export const submitDeliveryInfo = params => post('/order/submitDeliveryInfo', params);
+export const submitAddAddress = params => post('/order/submitAddAddress', params);
 export const getAllDeliveryCompany = () => post('/order/getAllDeliveryCompany');
 export const updateOrderAddress = params => post('/order/updateOrderAddress', params);
 export const deleteDeliveryCompany = params => post('/order/deleteDeliveryCompany', params);
