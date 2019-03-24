@@ -14,9 +14,11 @@
     "crypto-js": "^3.1.9-1",
     "element-ui": "^2.6.1",
     "jsencrypt": "^3.0.0-rc.1",
+    "socket.io-client": "^2.2.0",
     "vue": "^2.5.2",
     "vue-clipboard2": "^0.3.0",
     "vue-router": "^3.0.1",
+    "vue-socket.io": "^3.0.7",
     "vuex": "^3.0.1"
   },
   "devDependencies": {

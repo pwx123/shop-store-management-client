@@ -72,7 +72,7 @@
         </el-table-column>
         <el-table-column align="center"
           label="订单号"
-          width="140">
+          width="190">
           <template slot-scope="scope">
             <el-tooltip effect="dark"
               content="点击复制"
@@ -88,7 +88,7 @@
         </el-table-column>
         <el-table-column align="center"
           label="用户账号"
-          width="140">
+          width="130">
           <template slot-scope="scope">
             <el-tooltip effect="dark"
               content="点击复制"
@@ -110,7 +110,7 @@
           </template>
         </el-table-column>
         <el-table-column align="center"
-          width="100"
+          width="90"
           label="书籍数">
           <template slot-scope="scope">
             <el-button size="mini"
@@ -126,7 +126,7 @@
         <el-table-column prop="deliveryMoney"
           align="center"
           label="运费（元）"
-          width="120"></el-table-column>
+          width="90"></el-table-column>
         <el-table-column prop="totalMoney"
           align="center"
           label="实付款（元）"
@@ -213,14 +213,21 @@
           align="center"
           label="创建时间"
           width="160"></el-table-column>
-        <el-table-column prop="deliveryAt"
-          align="center"
+        <el-table-column align="center"
           label="发货时间"
-          width="160"></el-table-column>
+          width="160">
+          <template slot-scope="scope">
+            <span>{{scope.row.deliveryAt || '--'}}</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="dealAt"
           align="center"
           label="完成时间"
-          width="160"></el-table-column>
+          width="160">
+          <template slot-scope="scope">
+            <span>{{scope.row.deliveryAt || '--'}}</span>
+          </template>
+        </el-table-column>
       </el-table>
       <el-pagination background
         @size-change="handleSizeChange"
@@ -655,7 +662,7 @@ export default {
             if (res.errorCode === 200) {
               let str = "上传成功，状态已更改为已发货";
               if (this.isEditDelivery) {
-                str = '修改成功'
+                str = "修改成功";
               }
               this.$message({
                 message: str,

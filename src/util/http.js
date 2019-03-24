@@ -26,12 +26,10 @@ axios.interceptors.response.use(
     if (error.response.status) {
       switch (error.response.status) {
         case 401:
+          let path = `/login?redirect=${router.currentRoute.fullPath}`;
           setTimeout(() => {
             router.replace({
-              path: "/login",
-              query: {
-                redirect: router.currentRoute.fullPath
-              }
+              path: path
             });
           }, 500);
           break;

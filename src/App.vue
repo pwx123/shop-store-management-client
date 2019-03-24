@@ -55,6 +55,10 @@ li {
   transform: translateX(30px);
 }
 
+.el-notification.notify {
+  cursor: pointer;
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;

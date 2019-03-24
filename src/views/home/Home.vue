@@ -49,7 +49,7 @@
         <el-col :span="24">
           <transition name="fade-transform"
             mode="out-in">
-            <router-view></router-view>
+            <router-view v-if="showRouterView"></router-view>
           </transition>
         </el-col>
       </section>
@@ -66,11 +66,19 @@ export default {
   data() {
     return {
       sysName: "网上书店管理系统",
-      defaultAvatar: this.$basePath + "/images/admin/default.png"
+      defaultAvatar: this.$basePath + "/images/admin/default.png",
+      showRouterView: true,
+      orderNotify: {
+        newOrderNum: 0,
+        newRefundOrderNum: 0,
+        newOrderInstance: "",
+        newRefundOrderInstance: ""
+      }
     };
   },
   created() {
     this.getUserInfoFun();
+    this.$socket.open();
   },
   computed: {
     navRouter() {
@@ -113,6 +121,87 @@ export default {
         .catch(() => {});
     },
     ...mapActions(["getUserInfoActions"])
+  },
+  sockets: {
+    connect() {
+      console.log("socket connected");
+    },
+    hasNewOrder(res) {
+      let _this = this;
+      this.orderNotify.newOrderNum++;
+      this.orderNotify.newOrderInstance &&
+        this.orderNotify.newOrderInstance.close();
+      this.orderNotify.newOrderInstance = this.$notify.info({
+        title: "提示",
+        message: "您有 " + this.orderNotify.newOrderNum + " 笔新订单",
+        duration: 0,
+        customClass: "notify",
+        offset: 50,
+        onClick() {
+          if (_this.$route.path == "/index/orderList") {
+            _this.showRouterView = false;
+            _this.$nextTick(() => {
+              _this.showRouterView = true;
+            });
+          } else {
+            _this.$router.push("/index/orderList");
+          }
+          _this.orderNotify.newOrderNum = 0;
+          _this.orderNotify.newRefundOrderNum = 0;
+          _this.$notify.closeAll();
+        }
+      });
+    },
+    hasNewRefundOrder(res) {
+      let _this = this;
+      this.orderNotify.newRefundOrderNum++;
+      this.orderNotify.newRefundOrderInstance &&
+        this.orderNotify.newRefundOrderInstance.close();
+      this.orderNotify.newRefundOrderInstance = this.$notify({
+        title: "提示",
+        message:
+          "您有 " + this.orderNotify.newRefundOrderNum + " 笔新的退款订单",
+        type: "warning",
+        duration: 0,
+        customClass: "notify",
+        offset: 50,
+        onClick() {
+          if (_this.$route.path == "/index/orderList") {
+            _this.showRouterView = false;
+            _this.$nextTick(() => {
+              _this.showRouterView = true;
+            });
+          } else {
+            _this.$router.push("/index/orderList");
+          }
+          _this.orderNotify.newOrderNum = 0;
+          _this.orderNotify.newRefundOrderNum = 0;
+          _this.$notify.closeAll();
+        }
+      });
+    },
+    err(res) {
+      this.$message({
+        message: res.errorMsg,
+        type: "error"
+      });
+      if (res.errorCode === 401) {
+        this.$socket.close();
+        this.$router.replace({
+          path: `/login?redirect=${this.$router.currentRoute.fullPath}`
+        });
+      }
+    }
+  },
+  beforeRouteLeave(to, from, next) {
+    if (to.path.indexOf("index") === -1) {
+      this.orderNotify.newOrderInstance &&
+        this.orderNotify.newOrderInstance.close();
+      this.orderNotify.newRefundOrderInstance &&
+        this.orderNotify.newRefundOrderInstance.close();
+      this.$socket.close();
+    }
+    next();
   }
 };
 </script>
