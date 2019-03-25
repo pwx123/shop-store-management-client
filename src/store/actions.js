@@ -1,12 +1,12 @@
-import * as types from './mutations-types';
+import * as types from "./mutations-types";
 import {
   getUserInfo
-} from './../api/common';
+} from "./../api/common";
 
 const actions = {
   getUserInfoActions({
-    commit
-  }) {
+                       commit
+                     }) {
     return new Promise((resolve, reject) => {
       getUserInfo().then(res => {
         if (res.errorCode === 200) {
@@ -18,8 +18,8 @@ const actions = {
       }).catch(error => {
         reject(error);
       });
-    })
+    });
   }
-}
+};
 
 export default actions;

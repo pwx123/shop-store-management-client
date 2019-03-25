@@ -11,18 +11,23 @@
           :editable="false"
           :clearable="false"
           :default-time="['00:00:00', '23:59:59']"></el-date-picker>
-      <el-select v-model="searchParam.type"
+      <el-select v-model="searchParam.status"
           size="medium"
-          placeholder="类型"
+          placeholder="订单类型"
           clearable>
-        <el-option v-for="item in type"
+        <el-option v-for="item in status"
             :key="item.value"
             :value="item.value"
             :label="item.label"></el-option>
       </el-select>
-      <el-input placeholder="书籍名称"
+      <el-input placeholder="订单编号"
           size="medium"
-          v-model.trim="searchParam.bookName"
+          v-model.trim="searchParam.orderNumId"
+          clearable
+          @keyup.native.enter="search"></el-input>
+      <el-input placeholder="用户账号"
+          size="medium"
+          v-model.trim="searchParam.userName"
           clearable
           @keyup.native.enter="search"></el-input>
     </div>
@@ -44,21 +49,26 @@
           :header-cell-style="{background: '#fdfdfd'}"
           :height="460"
           border>
-        <el-table-column prop="bookName"
+        <el-table-column prop="orderNumId"
             align="center"
-            label="书籍名称"
-            width="160"></el-table-column>
-        <el-table-column prop="stockNum"
+            label="用户账号"
+            width="190"></el-table-column>
+        <el-table-column prop="userName"
             align="center"
-            label="进货数量"
-            width="160"></el-table-column>
+            label="用户账号"
+            width="130"></el-table-column>
         <el-table-column align="center"
-            label="进货价"
-            width="160">
+            label="订单状态"
+            width="120">
           <template slot-scope="scope">
-            <span v-if="scope.row.stockPrice">
-              {{scope.row.stockPrice | money}}
-            </span>
+            <span>{{statusMap[scope.row.status]}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column align="center"
+            label="退款金额"
+            width="100">
+          <template slot-scope="scope">
+            <span v-if="scope.row.refundMoney">{{ scope.row.refundMoney | money}}</span>
             <span v-else>--</span>
           </template>
         </el-table-column>
@@ -68,7 +78,7 @@
             label="备注"></el-table-column>
         <el-table-column prop="createdAt"
             align="center"
-            label="进货时间"
+            label="操作时间"
             width="180"></el-table-column>
       </el-table>
       <el-pagination background
@@ -84,7 +94,7 @@
 </template>
 
 <script>
-  import {getStockRecordList} from "./../../api/bookList";
+  import {getRefundRecord} from "./../../api/order";
   import {timeFormat, getDatePickerTime, handleError} from "./../../util/util";
 
   export default {
@@ -104,30 +114,27 @@
           pageSize: 15,
           startTime: "",
           endTime: "",
-          type: "",
-          bookName: ""
+          status: "",
+          orderNumId: "",
+          userName: ""
         },
-        type: [
+        status: [
           {
-            value: 0,
-            label: "新进图书"
+            value: 7,
+            label: "退款完成"
           },
           {
-            value: 1,
-            label: "增加库存"
-          },
-          {
-            value: 2,
-            label: "删除库存"
+            value: 8,
+            label: "拒绝退款"
           }
         ]
       };
     },
     computed: {
-      typeMap() {
+      statusMap() {
         let obj = {};
-        for (let i = 0, len = this.type.length; i < len; i++) {
-          obj[this.type[i].value] = this.type[i].label;
+        for (let i = 0, len = this.status.length; i < len; i++) {
+          obj[this.status[i].value] = this.status[i].label;
         }
         return obj;
       }
@@ -135,21 +142,21 @@
     created() {
       // 默认查一个月的
       this.dataPicker = getDatePickerTime(30);
-      this.getShopStockRecord();
+      this.getOrderRefundRecord();
     },
     methods: {
       // 执行搜索
       search() {
         this.searchParam.pageNumber = 1;
-        this.getShopStockRecord();
+        this.getOrderRefundRecord();
       },
       // 获取表格数据
-      async getShopStockRecord() {
+      async getOrderRefundRecord() {
         this.searchParam.startTime = this.dataPicker[0];
         this.searchParam.endTime = this.dataPicker[1];
         try {
           this.loading = true;
-          let res = await getStockRecordList(this.searchParam);
+          let res = await getRefundRecord(this.searchParam);
           this.loading = false;
           if (res.errorCode === 200) {
             this.tableData = res.data.rows;
@@ -173,20 +180,21 @@
           pageSize: 15,
           startTime: "",
           endTime: "",
-          type: "",
-          bookName: ""
+          status: "",
+          orderNumId: "",
+          userName: ""
         };
-        this.getShopStockRecord();
+        this.getOrderRefundRecord();
       },
       // 每页页数变化
       handleSizeChange(val) {
         this.searchParam.pageSize = val;
-        this.getShopStockRecord();
+        this.getOrderRefundRecord();
       },
       // 页码变化
       handleCurrentChange(val) {
         this.searchParam.pageNumber = val;
-        this.getShopStockRecord();
+        this.getOrderRefundRecord();
       }
     }
   };

@@ -4,42 +4,33 @@ import {
 
 export const mobileReg = /^1[3456789]\d{9}$/;
 export const pwdReg = /^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{8,16}$/;
-export const decimalReg = /^\d+(\.\d{0,2})?$/
+export const decimalReg = /^\d+(\.\d{0,2})?$/;
 
 
 export function emailCheck(email) {
-  var emailreg = /^([a-zA-Z0-9]+[_|.]?)*[a-zA-Z0-9]+@([a-zA-Z0-9]+[_|.]?)*[a-zA-Z0-9]+\.[a-zA-Z]{2,3}$/;
-  if (!emailreg.test(email)) {
-    return false;
-  }
-  return true;
+  let emailreg = /^([a-zA-Z0-9]+[_|.]?)*[a-zA-Z0-9]+@([a-zA-Z0-9]+[_|.]?)*[a-zA-Z0-9]+\.[a-zA-Z]{2,3}$/;
+  return emailreg.test(email);
 }
+
 export function pwdCheck(pwd) {
-  var pwdreg = /^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{8,16}$/;
-  if (!pwdreg.test(pwd)) {
-    return false;
-  }
-  return true;
+  let pwdreg = /^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{8,16}$/;
+  return pwdreg.test(pwd);
 }
+
 export function phoneNumCheck(phoneNUm) {
-  var phoneNumreg = /^[1][3,4,5,7,8][0-9]{9}$/;
-  if (!phoneNumreg.test(phoneNUm)) {
-    return false;
-  }
-  return true;
+  let phoneNumreg = /^[1][3,4,5,7,8][0-9]{9}$/;
+  return phoneNumreg.test(phoneNUm);
 }
+
 export function stringCheck(string) {
-  var result = removeSpace(string);
-  if (result.length === 0) {
-    return false;
-  }
-  return true;
+  let result = removeSpace(string);
+  return result.length !== 0;
 }
 
 export function removeSpace(string) {
   var result;
   result = string.trim();
-  result = result.replace(/\s/g, '');
+  result = result.replace(/\s/g, "");
   return result;
 }
 
@@ -51,16 +42,16 @@ export function removeSpace(string) {
  * @returns
  */
 export function set2(val) {
-  return val > 10 ? val : '0' + val;
+  return val > 10 ? val : "0" + val;
 }
 
 /**
  * 时间格式化 'yyyy-MM-dd HH:mm:ss'
  *
  * @export
- * @param {time} time 可选 时间
+ * @param {Date} time 可选 时间
  * @param {Boolean} showTime 是否显示时间
- * @returns 格式化后的字符串
+ * @returns string
  */
 export function timeFormat(time, showTime) {
   let date = time ? new Date(time) : new Date();
@@ -69,9 +60,9 @@ export function timeFormat(time, showTime) {
   let day = set2(date.getDate());
   let hour = set2(date.getHours());
   let minutes = set2(date.getMinutes());
-  let seconeds = set2(date.getSeconds());
+  let seconds = set2(date.getSeconds());
   let str = `${year}-${month}-${day}`;
-  str += (showTime ? ` ${hour}:${minutes}:${seconeds}` : '');
+  str += (showTime ? ` ${hour}:${minutes}:${seconds}` : "");
   return str;
 }
 
@@ -81,7 +72,7 @@ export function timeFormat(time, showTime) {
  * @export
  * @param {Number} num 前/后几天
  * @param {Boolean} showTime 是否显示时间
- * @returns 格式化后的字符串
+ * @returns string
  */
 export function getSomeFormatTime(num, showTime) {
   let date = new Date();
@@ -93,12 +84,12 @@ export function getSomeFormatTime(num, showTime) {
  * 获取datePicker 时间
  *
  * @param {Number} num 相差的天数
- * @returns 时间数组
+ * @returns Array
  */
 export function getDatePickerTime(num) {
-  var arr = [];
-  arr[0] = getSomeFormatTime(-num) + ' 00:00:00';
-  arr[1] = timeFormat() + ' 23:59:59';
+  let arr = [];
+  arr[0] = getSomeFormatTime(-num) + " 00:00:00";
+  arr[1] = timeFormat() + " 23:59:59";
   return arr;
 }
 
@@ -109,14 +100,14 @@ export function getDatePickerTime(num) {
  * @param {*} error
  */
 export function handleError(error) {
-  var msg = '系统错误';
+  let msg = "系统错误";
   if (error && error.errorMsg) {
     msg = error.errorMsg;
   }
   Message({
     message: msg,
-    type: 'error'
-  })
+    type: "error"
+  });
 }
 
 /**
@@ -127,5 +118,5 @@ export function handleError(error) {
  * @returns
  */
 export function tirmAll(str) {
-  return str.replace(/\s+/g, '');
+  return str.replace(/\s+/g, "");
 }
