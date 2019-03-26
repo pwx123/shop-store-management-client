@@ -44,32 +44,44 @@
           :header-cell-style="{background: '#fdfdfd'}"
           :height="460"
           border>
-        <el-table-column prop="bookName"
-            align="center"
-            label="书籍名称"
-            width="160"></el-table-column>
-        <el-table-column prop="stockNum"
-            align="center"
-            label="进货数量"
-            width="160"></el-table-column>
-        <el-table-column align="center"
-            label="进货价"
-            width="160">
-          <template slot-scope="scope">
+        <template v-for="item in tableItem">
+          <el-table-column v-if="(item.name === 'bookName') && item.isShow"
+              prop="bookName"
+              key="bookName"
+              align="center"
+              label="书籍名称"
+              width="160"></el-table-column>
+          <el-table-column v-if="(item.name === 'stockNum') && item.isShow"
+              prop="stockNum"
+              key="stockNum"
+              align="center"
+              label="进货数量"
+              width="160"></el-table-column>
+          <el-table-column v-if="(item.name === 'stockPrice') && item.isShow"
+              key="stockPrice"
+              align="center"
+              label="进货价"
+              width="160">
+            <template slot-scope="scope">
             <span v-if="scope.row.stockPrice">
               {{scope.row.stockPrice | money}}
             </span>
-            <span v-else>--</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="remark"
-            align="center"
-            min-width="300"
-            label="备注"></el-table-column>
-        <el-table-column prop="createdAt"
-            align="center"
-            label="进货时间"
-            width="180"></el-table-column>
+              <span v-else>--</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'remark') && item.isShow"
+              prop="remark"
+              key="remark"
+              align="center"
+              min-width="300"
+              label="备注"></el-table-column>
+          <el-table-column v-if="(item.name === 'createdAt') && item.isShow"
+              prop="createdAt"
+              key="createdAt"
+              align="center"
+              label="进货时间"
+              width="180"></el-table-column>
+        </template>
       </el-table>
       <el-pagination background
           @size-change="handleSizeChange"
@@ -120,7 +132,28 @@
             value: 2,
             label: "删除库存"
           }
-        ]
+        ],
+        tableItem: [
+          {
+            name: "bookName",
+            isShow: true
+          },
+          {
+            name: "stockNum",
+            isShow: true
+          },
+          {
+            name: "stockPrice",
+            isShow: true
+          },
+          {
+            name: "remark",
+            isShow: true
+          },
+          {
+            name: "createdAt",
+            isShow: true
+          }]
       };
     },
     computed: {

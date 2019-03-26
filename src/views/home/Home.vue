@@ -5,6 +5,10 @@
       <div class="logo">
         {{sysName}}
       </div>
+      <span class="sound-tips" title="新订单语音提示">
+        <i :class="'iconfont' + (isSound ? ' icon-yinlianglabashengyin' : ' icon-jingyin')"
+            @click="toggleSoundTips"></i>
+      </span>
       <div class="userinfo">
         <el-dropdown trigger="hover"
             size="medium">
@@ -50,7 +54,7 @@
         <el-col :span="24">
           <transition name="fade-transform"
               mode="out-in">
-            <router-view v-if="showRouterView"></router-view>
+            <router-view v-if="showRouterView" @reload="reload"></router-view>
           </transition>
         </el-col>
       </section>
@@ -75,13 +79,19 @@
           newRefundOrderNum: 0,
           newOrderInstance: "",
           newRefundOrderInstance: ""
-        }
+        },
+        // 是否静音
+        isSound: true
       };
     },
     created() {
       this.getUserInfoFun();
       this.setMessageAudioTips();
       this.$socket.open();
+      let isSoundStorage = localStorage.getItem("isSound");
+      if (isSoundStorage) {
+        this.isSound = JSON.parse(isSoundStorage);
+      }
     },
     computed: {
       navRouter() {
@@ -102,6 +112,17 @@
       // 跳转个人信息页面
       linkToAdminInfo() {
         this.$router.push("/index/adminInfo");
+      },
+      // 切换静音
+      toggleSoundTips() {
+        this.isSound = !this.isSound;
+        localStorage.setItem("isSound", JSON.stringify(this.isSound));
+      },
+      reload() {
+        this.showRouterView = false;
+        this.$nextTick(() => {
+          this.showRouterView = true;
+        });
       },
       // 退出登录
       logout() {
@@ -141,7 +162,7 @@
         this.orderNotify.newOrderNum++;
         this.orderNotify.newOrderInstance &&
         this.orderNotify.newOrderInstance.close();
-        this.audioTips.play && this.audioTips.play();
+        this.audioTips.play && this.isSound && this.audioTips.play();
         this.orderNotify.newOrderInstance = this.$notify.info({
           title: "提示",
           message: "您有 " + this.orderNotify.newOrderNum + " 笔新订单",
@@ -149,11 +170,8 @@
           customClass: "notify",
           offset: 50,
           onClick() {
-            if (_this.$route.path == "/index/orderList") {
-              _this.showRouterView = false;
-              _this.$nextTick(() => {
-                _this.showRouterView = true;
-              });
+            if (_this.$route.path === "/index/orderList") {
+              _this.reload();
             } else {
               _this.$router.push("/index/orderList");
             }
@@ -168,7 +186,7 @@
         this.orderNotify.newRefundOrderNum++;
         this.orderNotify.newRefundOrderInstance &&
         this.orderNotify.newRefundOrderInstance.close();
-        this.audioTips.play && this.audioTips.play();
+        this.audioTips.play && this.isSound && this.audioTips.play();
         this.orderNotify.newRefundOrderInstance = this.$notify({
           title: "提示",
           message:
@@ -178,11 +196,8 @@
           customClass: "notify",
           offset: 50,
           onClick() {
-            if (_this.$route.path == "/index/orderList") {
-              _this.showRouterView = false;
-              _this.$nextTick(() => {
-                _this.showRouterView = true;
-              });
+            if (_this.$route.path === "/index/orderList") {
+              _this.reload();
             } else {
               _this.$router.push("/index/orderList");
             }
@@ -231,11 +246,19 @@
       background $color-primary
       color #fff
 
-      .userinfo
+      .sound-tips
         flex 1
         text-align right
+        line-height 60px
+        padding-right 14px
+
+        i
+          cursor pointer
+          font-size 20px
+
+      .userinfo
+        text-align right
         padding-right 35px
-        float right
 
         .userinfo-inner
           cursor pointer

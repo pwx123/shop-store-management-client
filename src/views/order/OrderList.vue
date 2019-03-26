@@ -49,9 +49,18 @@
           size="medium"
           @click.native="submitRefundOrder">处理退款订单
       </el-button>
+      <el-button type="primary"
+          class="edit-btn"
+          title="编辑表格"
+          size="medium"
+          icon="el-icon-edit-outline"
+          circle
+          @click.native="editTable">
+      </el-button>
     </div>
     <div class="table-container">
       <el-table size="mini"
+          v-if="showTable"
           ref="orderTable"
           v-loading="loading"
           :data="tableData"
@@ -88,181 +97,209 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column align="center"
-            label="订单号"
-            width="190">
-          <template slot-scope="scope">
-            <el-tooltip effect="dark"
-                content="点击复制"
-                placement="top"
-                :enterable="false">
+        <template v-for="item in tableItem">
+          <el-table-column v-if="(item.name === 'orderId') && item.isShow"
+              key="orderId"
+              align="center"
+              label="订单号"
+              width="190">
+            <template slot-scope="scope">
+              <el-tooltip effect="dark"
+                  content="点击复制"
+                  placement="top"
+                  :enterable="false">
               <span v-clipboard:copy="scope.row.orderId"
                   v-clipboard:success="onCopySuccess"
                   v-clipboard:error="onCopyError">
                 {{scope.row.orderId}}
               </span>
-            </el-tooltip>
-          </template>
-        </el-table-column>
-        <el-table-column align="center"
-            label="用户账号"
-            width="130">
-          <template slot-scope="scope">
-            <el-tooltip effect="dark"
-                content="点击复制"
-                placement="top"
-                :enterable="false">
+              </el-tooltip>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'userName') && item.isShow"
+              key="userName"
+              align="center"
+              label="用户账号"
+              width="130">
+            <template slot-scope="scope">
+              <el-tooltip effect="dark"
+                  content="点击复制"
+                  placement="top"
+                  :enterable="false">
               <span v-clipboard:copy="scope.row.userName"
                   v-clipboard:success="onCopySuccess"
                   v-clipboard:error="onCopyError">
                 {{scope.row.userName}}
               </span>
-            </el-tooltip>
-          </template>
-        </el-table-column>
-        <el-table-column align="center"
-            label="状态"
-            width="120">
-          <template slot-scope="scope">
+              </el-tooltip>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'status') && item.isShow"
+              key="status"
+              align="center"
+              label="状态"
+              width="120">
+            <template slot-scope="scope">
             <span
                 :style="'color: ' + (statusMap[scope.row.status] ? statusMap[scope.row.status].color : '') ">{{statusMap[scope.row.status] ? statusMap[scope.row.status].val : "--"}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column align="center"
-            width="90"
-            label="书籍数">
-          <template slot-scope="scope">
-            <el-button size="mini"
-                type="text"
-                class="has-underline"
-                @click="(expandColumn(scope.row))">{{scope.row.orderNum}}
-            </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column align="center"
-            label="商品总价"
-            width="120">
-          <template slot-scope="scope">
-            <span>{{scope.row.orderMoney | money}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column align="center"
-            label="运费"
-            width="90">
-          <template slot-scope="scope">
-            <span>{{scope.row.deliveryMoney | money}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column align="center"
-            label="实付款"
-            width="120">
-          <template slot-scope="scope">
-            <span>{{scope.row.totalMoney | money}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column align="center"
-            width="120"
-            label="快递公司">
-          <template slot-scope="scope">
-            <template v-if="scope.row.deliveryId === 0 || scope.row.deliveryId">
-              <span>{{deliveryCompanyMap[scope.row.deliveryId]}}</span>
-              <el-button type="text"
-                  v-if="scope.row.status === 3"
-                  size="mini"
-                  @click="showDeliveryDialog(scope.row, true)">编辑
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'orderNum') && item.isShow"
+              key="orderNum"
+              align="center"
+              width="90"
+              label="书籍数">
+            <template slot-scope="scope">
+              <el-button size="mini"
+                  type="text"
+                  class="has-underline"
+                  @click="(expandColumn(scope.row))">{{scope.row.orderNum}}
               </el-button>
             </template>
-            <el-button v-else-if="scope.row.status === 2"
-                type="text"
-                size="mini"
-                @click="showDeliveryDialog(scope.row, false)">上传物流信息
-            </el-button>
-            <span v-else>--</span>
-          </template>
-        </el-table-column>
-        <el-table-column align="center"
-            width="180"
-            label="快递单号">
-          <template slot-scope="scope">
-            <template v-if="scope.row.deliveryOrderId === 0 || scope.row.deliveryOrderId">
-              <el-tooltip effect="dark"
-                  content="点击复制"
-                  placement="top"
-                  :enterable="false">
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'orderMoney') && item.isShow"
+              key="orderMoney"
+              align="center"
+              label="商品总价"
+              width="120">
+            <template slot-scope="scope">
+              <span>{{scope.row.orderMoney | money}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'deliveryMoney') && item.isShow"
+              key="deliveryMoney"
+              align="center"
+              label="运费"
+              width="90">
+            <template slot-scope="scope">
+              <span>{{scope.row.deliveryMoney | money}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'totalMoney') && item.isShow"
+              key="totalMoney"
+              align="center"
+              label="实付款"
+              width="120">
+            <template slot-scope="scope">
+              <span>{{scope.row.totalMoney | money}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'deliveryId') && item.isShow"
+              key="deliveryId"
+              align="center"
+              width="120"
+              label="快递公司">
+            <template slot-scope="scope">
+              <template v-if="scope.row.deliveryId === 0 || scope.row.deliveryId">
+                <span>{{deliveryCompanyMap[scope.row.deliveryId]}}</span>
+                <el-button type="text"
+                    v-if="scope.row.status === 3"
+                    size="mini"
+                    @click="showDeliveryDialog(scope.row, true)">编辑
+                </el-button>
+              </template>
+              <el-button v-else-if="scope.row.status === 2"
+                  type="text"
+                  size="mini"
+                  @click="showDeliveryDialog(scope.row, false)">上传物流信息
+              </el-button>
+              <span v-else>--</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'deliveryOrderId') && item.isShow"
+              key="deliveryOrderId"
+              align="center"
+              width="180"
+              label="快递单号">
+            <template slot-scope="scope">
+              <template v-if="scope.row.deliveryOrderId === 0 || scope.row.deliveryOrderId">
+                <el-tooltip effect="dark"
+                    content="点击复制"
+                    placement="top"
+                    :enterable="false">
                 <span v-clipboard:copy="scope.row.deliveryOrderId"
                     v-clipboard:success="onCopySuccess"
                     v-clipboard:error="onCopyError">
                   {{scope.row.deliveryOrderId}}
                 </span>
-              </el-tooltip>
-              <el-button type="text"
-                  v-if="scope.row.status === 3"
+                </el-tooltip>
+                <el-button type="text"
+                    v-if="scope.row.status === 3"
+                    size="mini"
+                    @click="showDeliveryDialog(scope.row, true)">编辑
+                </el-button>
+              </template>
+              <el-button v-else-if="scope.row.status === 2"
+                  type="text"
                   size="mini"
-                  @click="showDeliveryDialog(scope.row, true)">编辑
+                  @click="showDeliveryDialog(scope.row, false)">上传物流信息
               </el-button>
+              <span v-else>--</span>
             </template>
-            <el-button v-else-if="scope.row.status === 2"
-                type="text"
-                size="mini"
-                @click="showDeliveryDialog(scope.row, false)">上传物流信息
-            </el-button>
-            <span v-else>--</span>
-          </template>
-        </el-table-column>
-        <el-table-column align="center"
-            width="120"
-            label="收货地址">
-          <template slot-scope="scope">
-            <el-popover placement="top"
-                :key="scope.row.id"
-                @show="showAddress(scope.row)">
-              <div class="show-address">
-                <p>
-                  <span>收货人：</span>
-                  <span>{{orderAddress.deliveryName || "--"}}</span>
-                </p>
-                <p>
-                  <span>手机号：</span>
-                  <span>{{orderAddress.deliveryMobile || "--"}}</span>
-                </p>
-                <p>
-                  <span>收货地址：</span>
-                  <span>{{`${orderAddress.provinceName || "--"} ${orderAddress.cityName || "--"} ${orderAddress.countryName || "--"} ${orderAddress.detailAddress || "--"}`}}</span>
-                </p>
-                <p>
-                  <el-button type="primary"
-                      v-if="scope.row.status === 1 || scope.row.status === 2 || scope.row.status === 3"
-                      size="mini"
-                      @click.native="editOrderAddress(scope.row)">修改
-                  </el-button>
-                </p>
-              </div>
-              <el-button type="text"
-                  slot="reference"
-                  size="mini">查看
-              </el-button>
-            </el-popover>
-          </template>
-        </el-table-column>
-        <el-table-column prop="createdAt"
-            align="center"
-            label="创建时间"
-            width="160"></el-table-column>
-        <el-table-column align="center"
-            label="发货时间"
-            width="160">
-          <template slot-scope="scope">
-            <span>{{scope.row.deliveryAt || "--"}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="dealAt"
-            align="center"
-            label="完成时间"
-            width="160">
-          <template slot-scope="scope">
-            <span>{{scope.row.dealAt || "--"}}</span>
-          </template>
-        </el-table-column>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'deliveryAddressId') && item.isShow"
+              key="deliveryAddressId"
+              align="center"
+              width="120"
+              label="收货地址">
+            <template slot-scope="scope">
+              <el-popover placement="top"
+                  :key="scope.row.id"
+                  @show="showAddress(scope.row)">
+                <div class="show-address">
+                  <p>
+                    <span>收货人：</span>
+                    <span>{{orderAddress.deliveryName || "--"}}</span>
+                  </p>
+                  <p>
+                    <span>手机号：</span>
+                    <span>{{orderAddress.deliveryMobile || "--"}}</span>
+                  </p>
+                  <p>
+                    <span>收货地址：</span>
+                    <span>{{`${orderAddress.provinceName || "--"} ${orderAddress.cityName || "--"} ${orderAddress.countryName || "--"} ${orderAddress.detailAddress || "--"}`}}</span>
+                  </p>
+                  <p>
+                    <el-button type="primary"
+                        v-if="scope.row.status === 1 || scope.row.status === 2 || scope.row.status === 3"
+                        size="mini"
+                        @click.native="editOrderAddress(scope.row)">修改
+                    </el-button>
+                  </p>
+                </div>
+                <el-button type="text"
+                    slot="reference"
+                    size="mini">查看
+                </el-button>
+              </el-popover>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'createdAt') && item.isShow"
+              key="createdAt"
+              prop="createdAt"
+              align="center"
+              label="创建时间"
+              width="160"></el-table-column>
+          <el-table-column v-if="(item.name === 'deliveryAt') && item.isShow"
+              key="deliveryAt"
+              align="center"
+              label="发货时间"
+              width="160">
+            <template slot-scope="scope">
+              <span>{{scope.row.deliveryAt || "--"}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'dealAt') && item.isShow"
+              key="dealAt"
+              prop="dealAt"
+              align="center"
+              label="完成时间"
+              width="160">
+            <template slot-scope="scope">
+              <span>{{scope.row.dealAt || "--"}}</span>
+            </template>
+          </el-table-column>
+        </template>
       </el-table>
       <el-pagination background
           @size-change="handleSizeChange"
@@ -467,6 +504,39 @@
             @click="submitRefundInfo('refund')">确 定</el-button>
       </span>
     </el-dialog>
+    <el-dialog title="编辑表格"
+        top="60px"
+        width="300px"
+        :visible.sync="editTableDialog">
+      <div class="edit-table-dialog">
+        <span class="tips"><i class="el-icon-info"></i> 拖拽可排序</span>
+        <SlickList lockAxis="y"
+            class="slick-list"
+            helperClass="slick-helper"
+            :useDragHandle="true"
+            v-model="editTableItem">
+          <SlickItem v-for="(item, index) in editTableItem"
+              class="slick-item"
+              :index="index"
+              :showHandle="true"
+              :key="item.name">
+            <span v-handle class="handle"></span>
+            <el-checkbox v-model="selectEditTable"
+                :label="item.name">
+              {{(index + 1) + " - " + item.title}}
+            </el-checkbox>
+          </SlickItem>
+        </SlickList>
+      </div>
+      <span slot="footer"
+          class="dialog-footer">
+        <el-button size="small"
+            @click="editTableDialog = false">取 消</el-button>
+        <el-button size="small"
+            type="primary"
+            @click="submitEditTable">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -479,6 +549,9 @@
     getCountryByCity
   } from "./../../api/common";
   import {timeFormat, getDatePickerTime, handleError} from "./../../util/util";
+  import {SlickList, SlickItem, HandleDirective} from "vue-slicksort";
+
+  const STORAGE_NAME = 'orderListTable';
 
   export default {
     data() {
@@ -491,6 +564,8 @@
         tableData: [],
         // 加载中
         loading: false,
+        // 展示table
+        showTable: true,
         // 多选数组
         multipleSelection: [],
         // 物流公司数据
@@ -503,6 +578,12 @@
         addAddressDialog: false,
         // 退款确认弹窗
         refundDialog: false,
+        // 编辑表格弹窗
+        editTableDialog: false,
+        // 临时编辑表格数据
+        editTableItem: [],
+        // 编辑表格要显示的
+        selectEditTable: [],
         // 用户地址列表
         userAddressList: [],
         // 选择收货地址
@@ -648,7 +729,73 @@
             label: "已删除",
             color: "#909399"
           }
-        ]
+        ],
+        tableItem: [
+          {
+            name: "orderId",
+            title: "订单号",
+            isShow: true
+          },
+          {
+            name: "userName",
+            title: "用户账号",
+            isShow: true
+          },
+          {
+            name: "status",
+            title: "状态",
+            isShow: true
+          },
+          {
+            name: "orderNum",
+            title: "书籍数",
+            isShow: true
+          },
+          {
+            name: "orderMoney",
+            title: "商品总价",
+            isShow: true
+          },
+          {
+            name: "deliveryMoney",
+            title: "运费",
+            isShow: true
+          },
+          {
+            name: "totalMoney",
+            title: "实付款",
+            isShow: true
+          },
+          {
+            name: "deliveryId",
+            title: "快递公司",
+            isShow: true
+          },
+          {
+            name: "deliveryOrderId",
+            title: "快递单号",
+            isShow: true
+          },
+          {
+            name: "deliveryAddressId",
+            title: "收货地址",
+            isShow: true
+          },
+          {
+            name: "createdAt",
+            title: "创建时间",
+            isShow: true
+          },
+          {
+            name: "deliveryAt",
+            title: "发货时间",
+            isShow: true
+          },
+          {
+            name: "dealAt",
+            title: "完成时间",
+            isShow: true
+          }]
       };
     },
     computed: {
@@ -675,6 +822,11 @@
       this.getOrderList();
       this.getAllDeliveryCompany();
       this.getProvinceInfo();
+      let tableItemStorage = localStorage.getItem(STORAGE_NAME);
+      if (tableItemStorage){
+        this.tableItem = JSON.parse(tableItemStorage);
+      }
+      this.initSelectEditTable();
     },
     methods: {
       // 执行搜索
@@ -840,7 +992,7 @@
       },
       // 展示上传物流信息弹框
       showDeliveryDialog(row, isEdit) {
-        if (row.status != 2 && !isEdit) {
+        if (row.status !== 2 && !isEdit) {
           this.$message({
             message: "只有待发货状态能上传物流信息",
             type: "warning"
@@ -898,7 +1050,7 @@
       },
       // 提交修改收货地址
       async submitEditAddress() {
-        if (this.selectAddress == "") {
+        if (this.selectAddress === "") {
           this.$message({
             message: "请选择收货地址",
             type: "error"
@@ -1029,6 +1181,39 @@
         }),
         this.$refs["addAddress"] && this.$refs["addAddress"].clearValidate();
       },
+      // 编辑表格
+      editTable() {
+        this.editTableDialog = true;
+        this.editTableItem = this.tableItem.concat();
+      },
+      // 编辑表格确认修改
+      submitEditTable() {
+        for (let i = 0, iLen = this.editTableItem.length; i < iLen; i++) {
+          for (var j = 0, jLen = this.selectEditTable.length; j < jLen; j++) {
+            if(this.editTableItem[i].name === this.selectEditTable[j]){
+              this.editTableItem[i].isShow = true;
+              break;
+            }
+          }
+          if (j === jLen) {
+            this.editTableItem[i].isShow = false;
+          }
+        }
+        this.editTableDialog = false;
+        this.tableItem = this.editTableItem;
+        this.initSelectEditTable();
+        localStorage.setItem(STORAGE_NAME, JSON.stringify(this.tableItem));
+        this.$emit('reload');
+      },
+      // 初始化编辑表格select
+      initSelectEditTable(){
+        this.selectEditTable = [];
+        this.tableItem.forEach(item => {
+          if (item.isShow) {
+            this.selectEditTable.push(item.name);
+          }
+        });
+      },
       // 选择收货地址
       selectAddressRadio(id) {
         this.selectAddress = id;
@@ -1053,7 +1238,7 @@
       },
       // 收货手机号校验
       deliveryMobileReg(rule, value, callback) {
-        if (value == "") {
+        if (value === "") {
           callback(new Error("请输入收货人手机号"));
         } else if (/[\u4E00-\u9FA5]/i.test(value)) {
           callback(new Error("请输入正确的收货人手机号"));
@@ -1063,11 +1248,11 @@
       },
       // 省市信息校验
       areaReg(rule, value, callback) {
-        if (this.addAddressInfo.provinceId == "") {
+        if (this.addAddressInfo.provinceId === "") {
           callback(new Error("请选择省份"));
-        } else if (this.addAddressInfo.cityId == "") {
+        } else if (this.addAddressInfo.cityId === "") {
           callback(new Error("请选择市"));
-        } else if (this.addAddressInfo.countryId == "") {
+        } else if (this.addAddressInfo.countryId === "") {
           callback(new Error("请选择区/县"));
         } else {
           callback();
@@ -1121,7 +1306,12 @@
           type: "error"
         });
       }
-    }
+    },
+    components: {
+      SlickItem,
+      SlickList
+    },
+    directives: {handle: HandleDirective}
   };
 </script>
 
@@ -1141,6 +1331,14 @@
       max-width 140px
       margin-right 10px
       margin-bottom 10px
+
+  .option-button
+    position relative
+    padding-right 50px
+
+    .edit-btn
+      position absolute
+      right 4px
 
   .table-container
     margin-top 20px

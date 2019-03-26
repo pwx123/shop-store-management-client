@@ -4,6 +4,7 @@ import {
 } from "./../util/http";
 
 export const getOrderList = params => post("/order/getOrderList", params);
+export const getOrderByOrderId = params => post("/order/getOrderByOrderId", params);
 export const submitOrder = params => post("/order/submitOrder", params);
 export const submitDeliveryInfo = params => post("/order/submitDeliveryInfo", params);
 export const submitAddAddress = params => post("/order/submitAddAddress", params);

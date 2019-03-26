@@ -20,6 +20,11 @@
             :value="item.value"
             :label="item.label"></el-option>
       </el-select>
+      <el-input placeholder="退款流水号"
+          size="medium"
+          v-model.trim="searchParam.refundOrderId"
+          clearable
+          @keyup.native.enter="search"></el-input>
       <el-input placeholder="订单编号"
           size="medium"
           v-model.trim="searchParam.orderNumId"
@@ -49,19 +54,66 @@
           :header-cell-style="{background: '#fdfdfd'}"
           :height="460"
           border>
+        <el-table-column
+            align="center"
+            label="退款流水号"
+            width="190">
+          <template slot-scope="scope">
+            <el-tooltip effect="dark"
+                content="点击复制"
+                placement="top"
+                :enterable="false">
+              <span v-clipboard:copy="scope.row.refundOrderId"
+                  v-clipboard:success="onCopySuccess"
+                  v-clipboard:error="onCopyError">
+                {{scope.row.refundOrderId}}
+              </span>
+            </el-tooltip>
+          </template>
+        </el-table-column>
         <el-table-column prop="orderNumId"
             align="center"
-            label="用户账号"
-            width="190"></el-table-column>
+            label="订单编号"
+            width="190">
+          <template slot-scope="scope">
+            <el-tooltip effect="dark"
+                content="点击复制"
+                placement="top"
+                :enterable="false">
+              <span v-clipboard:copy="scope.row.orderNumId"
+                  v-clipboard:success="onCopySuccess"
+                  v-clipboard:error="onCopyError">
+                <el-button size="mini"
+                    type="text"
+                    class="has-underline"
+                    @click="showOrderDetail(scope.row.orderNumId)">{{scope.row.orderNumId}}
+                </el-button>
+              </span>
+            </el-tooltip>
+          </template>
+        </el-table-column>
         <el-table-column prop="userName"
             align="center"
             label="用户账号"
-            width="130"></el-table-column>
+            width="130">
+          <template slot-scope="scope">
+            <el-tooltip effect="dark"
+                content="点击复制"
+                placement="top"
+                :enterable="false">
+              <span v-clipboard:copy="scope.row.userName"
+                  v-clipboard:success="onCopySuccess"
+                  v-clipboard:error="onCopyError">
+                {{scope.row.userName}}
+              </span>
+            </el-tooltip>
+          </template>
+        </el-table-column>
         <el-table-column align="center"
             label="订单状态"
             width="120">
           <template slot-scope="scope">
-            <span>{{statusMap[scope.row.status]}}</span>
+            <span :style="'color: ' + statusMap[scope.row.status].color">{{statusMap[scope.row.status].val}}</span>
           </template>
         </el-table-column>
         <el-table-column align="center"
@@ -90,12 +142,108 @@
           layout="total, sizes, prev, pager, next, jumper"
           :total="total"></el-pagination>
     </div>
+    <el-dialog title="订单详情"
+        width="780px"
+        class="detail-dialog"
+        top="50px"
+        :visible.sync="detailDialog">
+      <div class="detail-dialog-content">
+        <el-form ref="refund"
+            label-width="80px"
+            :model="orderDetail">
+          <el-form-item label="订单号">
+            <span>{{orderDetail.orderId}}</span>
+          </el-form-item>
+          <el-form-item label="用户账号">
+            <span>{{orderDetail.userName}}</span>
+          </el-form-item>
+          <el-form-item label="状态">
+          <span
+              :style="'color: ' + (statusMap[orderDetail.status] ? statusMap[orderDetail.status].color : '')">{{statusMap[orderDetail.status] ? statusMap[orderDetail.status].val : "--"}}</span>
+          </el-form-item>
+          <el-form-item label="书籍数">
+            {{orderDetail.orderNum}}
+            <el-button type="text"
+                class="book-num"
+                @click="showBookToggle"
+            >
+              {{showBooks ? "收起": "展开"}}
+              <i :class="'el-icon-arrow-right' + (showBooks ? ' active':'')"></i>
+            </el-button>
+            <el-collapse-transition>
+              <div v-if="showBooks">
+                <div class="expand-title">
+                  <span>书籍</span>
+                  <span>数量</span>
+                  <span>价格</span>
+                  <span>折后价</span>
+                  <span>总价</span>
+                </div>
+                <div v-for="item in orderDetail.orders"
+                    class="expand-info"
+                    :key="item.id">
+                  <div class="img">
+                    <img :src="item.bookImageUrl">
+                  </div>
+                  <div class="book-info">
+                    <span>{{item.bookName}}</span><br>
+                    <span>{{item.bookTitle.length > 7 ?  item.bookTitle.slice(0,7) + "..." : item.bookTitle}}</span>
+                  </div>
+                  <span>{{item.bookNum}}</span>
+                  <span>{{item.bookPrice | money}}</span>
+                  <span>{{item.bookSalePrice | money}}</span>
+                  <span>{{(item.bookSalePrice * item.bookNum).toFixed(2) | money}}</span>
+                </div>
+              </div>
+            </el-collapse-transition>
+
+          </el-form-item>
+          <el-form-item label="商品总价">
+            <span>{{orderDetail.orderMoney | money}}</span>
+          </el-form-item>
+          <el-form-item label="运费">
+            <span>{{orderDetail.deliveryMoney | money}}</span>
+          </el-form-item>
+          <el-form-item label="实付款">
+            <span>{{orderDetail.totalMoney | money}}</span>
+          </el-form-item>
+          <el-form-item label="物流公司">
+            <span>{{deliveryCompanyMap[orderDetail.deliveryId] || "--"}}</span>
+          </el-form-item>
+          <el-form-item label="物流单号">
+            <span>{{orderDetail.deliveryOrderId || "--"}}</span>
+          </el-form-item>
+          <el-form-item label="收货地址">
+            <span v-if="orderDetail.deliveryAddressId">
+              {{`${orderDetailAddress.provinceName} ${orderDetailAddress.cityName} ${orderDetailAddress.countryName} ${orderDetailAddress.detailAddress}`}}
+            </span>
+            <span v-else>--</span>
+          </el-form-item>
+          <el-form-item label="创建时间">
+            <span>{{orderDetail.createdAt || "--"}}</span>
+          </el-form-item>
+          <el-form-item label="发货时间">
+            <span>{{orderDetail.deliveryAt || "--"}}</span>
+          </el-form-item>
+          <el-form-item label="完成时间">
+            <span>{{orderDetail.dealAt || "--"}}</span>
+          </el-form-item>
+        </el-form>
+      </div>
+      <span slot="footer"
+          class="dialog-footer">
+        <el-button size="small"
+            type="primary"
+            @click="detailDialog = false">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-  import {getRefundRecord} from "./../../api/order";
-  import {timeFormat, getDatePickerTime, handleError} from "./../../util/util";
+  import {getRefundRecord, getOrderByOrderId, getAllDeliveryCompany} from "./../../api/order";
+  import {getOrderAddressById} from "./../../api/user";
+  import {getDatePickerTime, handleError} from "./../../util/util";
 
   export default {
     data() {
@@ -106,14 +254,25 @@
         dataPicker: [],
         // 列表数据
         tableData: [],
+        // 订单详情数据
+        orderDetail: {},
+        // 订单详情-地址
+        orderDetailAddress: {},
         // 加载中
         loading: false,
+        // 全部物流公司
+        deliveryCompanyData: [],
+        // 订单详情弹窗
+        detailDialog: false,
+        // 展示图书详情
+        showBooks: false,
         // 搜索参数
         searchParam: {
           pageNumber: 1,
           pageSize: 15,
           startTime: "",
           endTime: "",
+          refundOrderId: "",
           status: "",
           orderNumId: "",
           userName: ""
@@ -121,20 +280,33 @@
         status: [
           {
             value: 7,
-            label: "退款完成"
+            label: "退款完成",
+            color: "#25C6FC"
           },
           {
             value: 8,
-            label: "拒绝退款"
+            label: "拒绝退款",
+            color: "#909399"
           }
         ]
       };
     },
     computed: {
+      // 状态map
       statusMap() {
         let obj = {};
         for (let i = 0, len = this.status.length; i < len; i++) {
-          obj[this.status[i].value] = this.status[i].label;
+          obj[this.status[i].value] = {};
+          obj[this.status[i].value].val = this.status[i].label;
+          obj[this.status[i].value].color = this.status[i].color;
+        }
+        return obj;
+      },
+      // 物流公司map
+      deliveryCompanyMap() {
+        let obj = {};
+        for (let i = 0, len = this.deliveryCompanyData.length; i < len; i++) {
+          obj[this.deliveryCompanyData[i].id] = this.deliveryCompanyData[i].name;
         }
         return obj;
       }
@@ -143,6 +315,7 @@
       // 默认查一个月的
       this.dataPicker = getDatePickerTime(30);
       this.getOrderRefundRecord();
+      this.getAllDeliveryCompanyFun();
     },
     methods: {
       // 执行搜索
@@ -172,6 +345,55 @@
           handleError(error);
         }
       },
+      // 获取全部物流公司
+      async getAllDeliveryCompanyFun() {
+        try {
+          let res = await getAllDeliveryCompany();
+          if (res.errorCode === 200) {
+            this.deliveryCompanyData = res.data;
+          } else {
+            this.$message({
+              message: res.errorMsg,
+              type: "error"
+            });
+          }
+        } catch (error) {
+          handleError(error);
+        }
+      },
+      // 获取订单详情数据
+      async showOrderDetail(orderId) {
+        try {
+          this.orderDetail = {};
+          this.orderDetailAddress = {};
+          let res = await getOrderByOrderId({orderId});
+          if (res.errorCode === 200) {
+            this.orderDetail = res.data;
+            this.detailDialog = true;
+            let deliveryAddressId = this.orderDetail.deliveryAddressId;
+            let addressRes = await getOrderAddressById({id: deliveryAddressId});
+            if (addressRes.errorCode === 200) {
+              this.orderDetailAddress = addressRes.data;
+            } else {
+              this.$message({
+                message: addressRes.errorMsg,
+                type: "error"
+              });
+            }
+          } else {
+            this.$message({
+              message: res.errorMsg,
+              type: "error"
+            });
+          }
+        } catch (error) {
+          handleError(error);
+        }
+      },
+      // 切换图书展示
+      showBookToggle() {
+        this.showBooks = !this.showBooks;
+      },
       // 重置搜索条件
       resetSearch() {
         this.dataPicker = getDatePickerTime(30);
@@ -180,6 +402,7 @@
           pageSize: 15,
           startTime: "",
           endTime: "",
+          refundOrderId: "",
           status: "",
           orderNumId: "",
           userName: ""
@@ -195,6 +418,20 @@
       handleCurrentChange(val) {
         this.searchParam.pageNumber = val;
         this.getOrderRefundRecord();
+      },
+      // 复制成功
+      onCopySuccess() {
+        this.$message({
+          message: "复制成功",
+          type: "success"
+        });
+      },
+      // 复制失败
+      onCopyError() {
+        this.$message({
+          message: "复制失败，请尝试手动复制",
+          type: "error"
+        });
       }
     }
   };
@@ -202,6 +439,8 @@
 
 <style lang="stylus" scoped>
   @import './../../styl/variables.styl'
+  .has-underline
+    text-decoration underline
 
   .filter-search
     display flex
@@ -222,4 +461,72 @@
 
     .el-pagination
       margin-top 20px
+
+  .detail-dialog
+    .detail-dialog-content
+      height 400px
+      overflow-y scroll
+
+    .el-form-item
+      margin-bottom 6px
+
+    .expand-title
+      width 600px
+      display flex
+      justify-content space-around
+      align-items center
+      font-size 14px
+      line-height 40px
+      border 1px solid #ebebeb
+      background-color #fafafa
+      border-radius 3px
+      border-bottom-right-radius 0
+      border-bottom-left-radius 0
+
+      & > span
+        flex 1
+        text-align center
+
+      & > span:first-child
+        min-width 220px
+
+    .expand-info
+      width 600px
+      display flex
+      justify-content space-around
+      align-items center
+      font-size 12px
+      border 1px solid #ebebeb
+      border-top none
+
+      & > span
+        flex 1
+        text-align center
+
+      .img
+        display flex
+        justify-content center
+        align-items center
+        width 80px
+        height 60px
+        margin-right 20px
+        padding 10px
+        overflow hidden
+
+        img
+          width 80px
+
+      .book-info
+        width 100px
+        line-height 24px
+
+    .book-num
+      margin-left 4px
+
+    .el-icon-arrow-right
+      transform rotate(0)
+      transition all .5s
+
+    .el-icon-arrow-right.active
+      transform rotate(90deg)
 </style>
