@@ -79,7 +79,7 @@
               </div>
               <div class="book-info">
                 <span>{{item.bookName}}</span><br>
-                <span>{{item.bookTitle}}</span>
+                <span>{{item.bookTitle.length > 13 ?  item.bookTitle.slice(0,13) + "..." : item.bookTitle}}</span>
               </div>
               <span>{{item.bookNum}}</span>
               <span>{{item.bookPrice | money}}</span>
@@ -125,7 +125,7 @@
             width="120">
           <template slot-scope="scope">
             <span
-                :style="'color: ' + (statusMap[scope.row.status] ? statusMap[scope.row.status].color : '--') ">{{statusMap[scope.row.status] ? statusMap[scope.row.status].val : "--"}}</span>
+                :style="'color: ' + (statusMap[scope.row.status] ? statusMap[scope.row.status].color : '') ">{{statusMap[scope.row.status] ? statusMap[scope.row.status].val : "--"}}</span>
           </template>
         </el-table-column>
         <el-table-column align="center"
@@ -260,7 +260,7 @@
             label="完成时间"
             width="160">
           <template slot-scope="scope">
-            <span>{{scope.row.deliveryAt || "--"}}</span>
+            <span>{{scope.row.dealAt || "--"}}</span>
           </template>
         </el-table-column>
       </el-table>
@@ -814,7 +814,7 @@
             try {
               let ids = this.multipleSelection.map(item => item.id);
               let obj = {
-                ids: ids.join(','),
+                ids: ids.join(","),
                 ...this.refundData
               };
               let res = await orderApi.submitRefundInfo(obj);
@@ -1199,9 +1199,7 @@
 
       .book-info
         width 180px
-
-        span
-          line-height 20px
+        line-height 24px
 
   .delivery-dialog
     .el-select
