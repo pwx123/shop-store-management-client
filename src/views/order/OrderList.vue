@@ -217,10 +217,16 @@
                     content="点击复制"
                     placement="top"
                     :enterable="false">
-                <span v-clipboard:copy="scope.row.deliveryOrderId"
-                    v-clipboard:success="onCopySuccess"
-                    v-clipboard:error="onCopyError">
-                  {{scope.row.deliveryOrderId}}
+                <span>
+                  <span v-clipboard:copy="scope.row.deliveryOrderId"
+                      v-clipboard:success="onCopySuccess"
+                      v-clipboard:error="onCopyError">
+                    {{scope.row.deliveryOrderId}}
+                  </span>
+                  <el-button type="text"
+                      size="mini"
+                      @click="showDeliveryInfo(scope.row.deliveryOrderId)">查看
+                  </el-button>
                 </span>
                 </el-tooltip>
                 <el-button type="text"
@@ -547,6 +553,32 @@
             @click="submitEditTable">确 定</el-button>
       </span>
     </el-dialog>
+    <el-dialog title="物流详情"
+        top="60px"
+        width="560px"
+        class="delivery-detail-dialog"
+        :visible.sync="deliveryDetailDialog">
+      <div class="delivery-detail-content">
+        <ul>
+          <li>
+            <div class="border-left"></div>
+            <span :class="'status' + (deliveryInfoDetail.status === 0 ? '': ' finished')">{{deliveryInfoDetail.status === 0 ? "运输中": "已完成"}}</span>
+          </li>
+          <li v-for="item in deliveryInfoDetail.infoArr">
+            <div class="border-left"></div>
+            <div class="dot"></div>
+            <p class="info">{{item.info}}</p>
+            <p class="time">{{item.time}}</p>
+          </li>
+        </ul>
+      </div>
+      <span slot="footer"
+          class="dialog-footer">
+        <el-button size="small"
+            type="primary"
+            @click="deliveryDetailDialog = false">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -559,6 +591,7 @@
     getCountryByCity
   } from "./../../api/common";
   import {timeFormat, getDatePickerTime, handleError} from "./../../util/util";
+  import {getDeliveryInfoById} from "./../../api/common";
   import {SlickList, SlickItem, HandleDirective} from "vue-slicksort";
 
   const STORAGE_NAME = "orderListTable";
@@ -590,6 +623,8 @@
         refundDialog: false,
         // 编辑表格弹窗
         editTableDialog: false,
+        // 物流详情弹窗
+        deliveryDetailDialog: false,
         // 临时编辑表格数据
         editTableItem: [],
         // 编辑表格要显示的
@@ -629,6 +664,10 @@
         refundData: {
           refundStatus: 1,
           refundRemark: ""
+        },
+        deliveryInfoDetail: {
+          infoArr: [],
+          status: ""
         },
         // 上传物流校验
         deliveryInfoValidate: {
@@ -1179,17 +1218,39 @@
           }
         });
       },
+      // 新增收货地址
       addAddressBtnClick() {
         this.addAddressDialog = true;
-        (this.addAddressInfo = {
+        this.addAddressInfo = {
           deliveryName: "",
           deliveryMobile: "",
           provinceId: "",
           cityId: "",
           countryId: "",
           detailAddress: ""
-        }),
+        },
         this.$refs["addAddress"] && this.$refs["addAddress"].clearValidate();
+      },
+      // 根据物流单号查看物流信息
+      async showDeliveryInfo(id) {
+        try {
+          this.deliveryInfoDetail = {
+            infoArr: [],
+            status: ""
+          };
+          let res = await getDeliveryInfoById({id});
+          if (res.errorCode === 200) {
+            this.deliveryInfoDetail = res.data;
+            this.deliveryDetailDialog = true;
+          } else {
+            this.$message({
+              message: res.errorMsg,
+              type: "error"
+            });
+          }
+        } catch (error) {
+          handleError(error);
+        }
       },
       // 编辑表格
       editTable() {
@@ -1461,4 +1522,73 @@
 
         .el-radio
           margin-right 0
+
+  .delivery-detail-dialog
+    .delivery-detail-content
+
+      ul
+        padding-left 45px
+        max-height 400px
+        overflow-y scroll
+        margin 0
+        padding-top 30px
+
+        li
+          position relative
+          border-top 1px solid #ececec
+          padding 6px 0 4px 16px
+
+          .border-left
+            position absolute
+            left -16px
+            top 2px
+            width 1px
+            height 100%
+            background-color #e4e7ed
+
+          .dot
+            position absolute
+            width 8px
+            height 8px
+            left -21px
+            bottom -2px
+            background-color #33a2f7
+            border 2px solid #fff
+            border-radius 50%
+
+          &:last-child
+            .border-left, .dot
+              display none
+
+          &:first-child
+            border-top none
+
+            .status
+              position absolute
+              left -44px
+              top -26px
+              display inline-block
+              width 58px
+              height 25px
+              line-height 25px
+              text-align center
+              background-color #ff5a00
+              color #fff
+              border-radius 2px
+              z-index 99
+
+              &.finished
+                background-color #409eff
+
+          p
+            margin 0
+
+          .info
+            font-size 14px
+            line-height 22px
+
+          .time
+            font-size 12px
+            color #a1a1a1
+            line-height 22px
 </style>

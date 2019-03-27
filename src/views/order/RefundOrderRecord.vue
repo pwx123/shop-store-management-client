@@ -333,7 +333,7 @@
         // 订单详情弹窗
         detailDialog: false,
         // 展示图书详情
-        showBooks: false,
+        showBooks: true,
         // 编辑表格弹窗
         editTableDialog: false,
         // 临时编辑表格数据
@@ -479,6 +479,7 @@
       // 获取订单详情数据
       async showOrderDetail(orderId) {
         try {
+          this.showBooks = true;
           this.orderDetail = {};
           this.orderDetailAddress = {};
           let res = await getOrderByOrderId({orderId});

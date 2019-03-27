@@ -2,9 +2,9 @@
   <el-row class="container">
     <el-col :span="24"
         class="header">
-      <div class="logo">
+      <router-link tag="div" to="/index" class="logo">
         {{sysName}}
-      </div>
+      </router-link>
       <span class="sound-tips" title="新订单语音提示">
         <i :class="'iconfont' + (isSound ? ' icon-yinlianglabashengyin' : ' icon-jingyin')"
             @click="toggleSoundTips"></i>
@@ -287,6 +287,7 @@
         width 210px
         border-right-width 1px
         border-right-style solid
+        cursor pointer
 
     .main
       display flex

@@ -881,9 +881,13 @@
       editStockFun(row) {
         this.editStockDialog = true;
         this.editStock = 0;
-        this.editData = Object.assign({}, row);
-        this.editData.stockPrice = "";
-        this.editData.remark = "";
+        this.editData = {
+          id: row.id,
+          name: row.name,
+          stock: row.stock,
+          stockPrice: '',
+          remark: '',
+        };
       },
       // 选择图片
       handleFileChange(file) {
