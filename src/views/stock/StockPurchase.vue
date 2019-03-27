@@ -62,6 +62,14 @@
             :loading="uploadExcelLoading">批量上传
         </el-button>
       </el-upload>
+      <el-button type="primary"
+          class="edit-btn"
+          title="编辑表格"
+          size="medium"
+          icon="el-icon-edit-outline"
+          circle
+          @click.native="editTable">
+      </el-button>
     </div>
     <div class="table-container">
       <el-table size="mini"
@@ -74,82 +82,110 @@
         <el-table-column type="selection"
             align="center"
             width="40"></el-table-column>
-        <el-table-column prop="name"
-            align="center"
-            label="书名"
-            width="160"></el-table-column>
-        <el-table-column prop="author"
-            align="center"
-            label="作者"
-            width="140"></el-table-column>
-        <el-table-column prop="press"
-            align="center"
-            label="出版社"
-            width="180"></el-table-column>
-        <el-table-column align="center"
-            label="是否在售"
-            width="100">
-          <template slot-scope="scope">
+        <template v-for="item in tableItem">
+          <el-table-column v-if="(item.name === 'name') && item.isShow"
+              key="name"
+              prop="name"
+              align="center"
+              label="书名"
+              width="160"></el-table-column>
+          <el-table-column v-if="(item.name === 'author') && item.isShow"
+              key="author"
+              prop="author"
+              align="center"
+              label="作者"
+              width="140"></el-table-column>
+          <el-table-column v-if="(item.name === 'press') && item.isShow"
+              key="press"
+              prop="press"
+              align="center"
+              label="出版社"
+              width="180"></el-table-column>
+          <el-table-column v-if="(item.name === 'isSell') && item.isShow"
+              key="isSell"
+              align="center"
+              label="是否在售"
+              width="100">
+            <template slot-scope="scope">
             <span v-if="scope.row.isSell == 1"
                 class="status-success">是</span>
-            <span v-else
-                class="status-failed">否</span>
-          </template>
-        </el-table-column>
-        <el-table-column align="center"
-            label="分类"
-            width="180">
-          <template slot-scope="scope">
-            <show-tags :classify="scope.row.classify"
-                :classifyMap="classifyMap"></show-tags>
-          </template>
-        </el-table-column>
-        <el-table-column prop="title"
-            align="center"
-            label="标题"
-            width="180"></el-table-column>
-        <el-table-column prop="description"
-            align="center"
-            label="描述"
-            width="180"></el-table-column>
-        <el-table-column prop="stock"
-            align="center"
-            label="库存"
-            width="100"></el-table-column>
-        <el-table-column label="价格"
-            align="center"
-            width="100">
-          <template slot-scope="scope">
-            <span>{{scope.row.price | money}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column align="center"
-            label="折后价"
-            width="100">
-          <template slot-scope="scope">
-            <span>{{scope.row.salePrice | money}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column align="center"
-            label="图片"
-            width="100">
-          <template slot-scope="scope">
-            <el-button v-if="scope.row.imageUrl"
-                type="text"
-                size="mini"
-                @click.native="showImgDialogFun(scope.row.imageUrl)">查看图片
-            </el-button>
-            <span v-else>---</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="createdAt"
-            align="center"
-            label="创建时间"
-            width="160"></el-table-column>
-        <el-table-column prop="updatedAt"
-            align="center"
-            label="修改时间"
-            width="160"></el-table-column>
+              <span v-else
+                  class="status-failed">否</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'classify') && item.isShow"
+              key="classify"
+              align="center"
+              label="分类"
+              width="180">
+            <template slot-scope="scope">
+              <show-tags :classify="scope.row.classify"
+                  :classifyMap="classifyMap"></show-tags>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'title') && item.isShow"
+              key="title"
+              prop="title"
+              align="center"
+              label="标题"
+              width="180"></el-table-column>
+          <el-table-column v-if="(item.name === 'description') && item.isShow"
+              key="description"
+              prop="description"
+              align="center"
+              label="描述"
+              width="180"></el-table-column>
+          <el-table-column v-if="(item.name === 'stock') && item.isShow"
+              key="stock"
+              prop="stock"
+              align="center"
+              label="库存"
+              width="100"></el-table-column>
+          <el-table-column v-if="(item.name === 'price') && item.isShow"
+              key="price"
+              align="center"
+              label="价格"
+              width="100">
+            <template slot-scope="scope">
+              <span>{{scope.row.price | money}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'salePrice') && item.isShow"
+              key="salePrice"
+              align="center"
+              label="折后价"
+              width="100">
+            <template slot-scope="scope">
+              <span>{{scope.row.salePrice | money}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'imageUrl') && item.isShow"
+              key="imageUrl"
+              align="center"
+              label="图片"
+              width="100">
+            <template slot-scope="scope">
+              <el-button v-if="scope.row.imageUrl"
+                  type="text"
+                  size="mini"
+                  @click.native="showImgDialogFun(scope.row.imageUrl)">查看图片
+              </el-button>
+              <span v-else>---</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'createdAt') && item.isShow"
+              key="createdAt"
+              prop="createdAt"
+              align="center"
+              label="创建时间"
+              width="160"></el-table-column>
+          <el-table-column v-if="(item.name === 'updatedAt') && item.isShow"
+              key="updatedAt"
+              prop="updatedAt"
+              align="center"
+              label="修改时间"
+              width="160"></el-table-column>
+        </template>
         <el-table-column fixed="right"
             align="center"
             label="操作"
@@ -399,6 +435,49 @@
             alt="图片详情">
       </div>
     </el-dialog>
+    <el-dialog title="编辑表格"
+        top="60px"
+        width="300px"
+        :visible.sync="editTableDialog">
+      <div class="edit-table-dialog">
+        <div class="tips">
+          <span>
+            <i class="el-icon-info"></i> 拖拽可排序
+          </span>
+          <el-button type="text"
+              size="mini"
+              @click="resetEditTable">
+            恢复默认
+          </el-button>
+        </div>
+        <SlickList lockAxis="y"
+            class="slick-list"
+            helperClass="slick-helper"
+            :useDragHandle="true"
+            v-model="editTableItem">
+          <SlickItem v-for="(item, index) in editTableItem"
+              class="slick-item"
+              :index="index"
+              :showHandle="true"
+              :key="item.name">
+            <span v-handle class="handle"></span>
+            <el-checkbox v-model="selectEditTable"
+                :label="item.name"
+                :disabled="item.name === 'name'">
+              {{(index + 1) + " - " + item.title}}
+            </el-checkbox>
+          </SlickItem>
+        </SlickList>
+      </div>
+      <span slot="footer"
+          class="dialog-footer">
+        <el-button size="small"
+            @click="editTableDialog = false">取 消</el-button>
+        <el-button size="small"
+            type="primary"
+            @click="submitEditTable">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -412,6 +491,9 @@
   } from "./../../util/util";
 
   import showTags from "./../../components/ShowTags";
+  import {SlickList, SlickItem, HandleDirective} from "vue-slicksort";
+
+  const STORAGE_NAME = "stockPurchaseTable";
 
   export default {
     data() {
@@ -426,6 +508,12 @@
         editData: {},
         // 是否是编辑图书
         isEdit: true,
+        // 编辑表格弹窗
+        editTableDialog: false,
+        // 临时编辑表格数据
+        editTableItem: [],
+        // 编辑表格要显示的
+        selectEditTable: [],
         // 提交校验规则
         editDataValidate: {
           name: [{required: true, message: "请输入书名", trigger: "blur"}],
@@ -483,7 +571,72 @@
           name: "",
           author: "",
           press: ""
-        }
+        },
+        tableItem: [
+          {
+            name: "name",
+            title: "书名",
+            isShow: true
+          },
+          {
+            name: "author",
+            title: "作者",
+            isShow: true
+          },
+          {
+            name: "press",
+            title: "出版社",
+            isShow: true
+          },
+          {
+            name: "isSell",
+            title: "是否在售",
+            isShow: true
+          },
+          {
+            name: "classify",
+            title: "分类",
+            isShow: true
+          },
+          {
+            name: "title",
+            title: "标题",
+            isShow: true
+          },
+          {
+            name: "description",
+            title: "描述",
+            isShow: true
+          },
+          {
+            name: "stock",
+            title: "库存",
+            isShow: true
+          },
+          {
+            name: "price",
+            title: "价格",
+            isShow: true
+          },
+          {
+            name: "salePrice",
+            title: "折后价",
+            isShow: true
+          },
+          {
+            name: "imageUrl",
+            title: "图片",
+            isShow: true
+          },
+          {
+            name: "createdAt",
+            title: "创建时间",
+            isShow: true
+          }, {
+            name: "updatedAt",
+            title: "修改时间",
+            isShow: true
+          }]
       };
     },
     computed: {
@@ -501,6 +654,11 @@
       this.dataPicker = getDatePickerTime(30);
       this.getBookList();
       this.getAllClassifyFun();
+      let tableItemStorage = localStorage.getItem(STORAGE_NAME);
+      if (tableItemStorage) {
+        this.tableItem = JSON.parse(tableItemStorage);
+      }
+      this.initSelectEditTable();
     },
     methods: {
       // 执行搜索
@@ -847,6 +1005,44 @@
         }
         this.showImgDialog = true;
       },
+      // 编辑表格
+      editTable() {
+        this.editTableDialog = true;
+        this.editTableItem = this.tableItem.concat();
+      },
+      // 编辑表格确认修改
+      submitEditTable() {
+        for (let i = 0, iLen = this.editTableItem.length; i < iLen; i++) {
+          for (var j = 0, jLen = this.selectEditTable.length; j < jLen; j++) {
+            if (this.editTableItem[i].name === this.selectEditTable[j]) {
+              this.editTableItem[i].isShow = true;
+              break;
+            }
+          }
+          if (j === jLen) {
+            this.editTableItem[i].isShow = false;
+          }
+        }
+        this.editTableDialog = false;
+        this.tableItem = this.editTableItem;
+        this.initSelectEditTable();
+        localStorage.setItem(STORAGE_NAME, JSON.stringify(this.tableItem));
+        this.$emit("reload");
+      },
+      // 初始化编辑表格select
+      initSelectEditTable() {
+        this.selectEditTable = [];
+        this.tableItem.forEach(item => {
+          if (item.isShow) {
+            this.selectEditTable.push(item.name);
+          }
+        });
+      },
+      // 重置编辑表格
+      resetEditTable() {
+        localStorage.removeItem(STORAGE_NAME);
+        this.$emit("reload");
+      },
       // 图书选择变化
       handleSelectionChange(val) {
         this.multipleSelection = val;
@@ -897,8 +1093,11 @@
       }
     },
     components: {
-      showTags
-    }
+      showTags,
+      SlickItem,
+      SlickList
+    },
+    directives: {handle: HandleDirective}
   };
 </script>
 
@@ -951,6 +1150,14 @@
       img
         cursor pointer
         max-width 300px
+
+  .option-button
+    position relative
+    padding-right 50px
+
+    .edit-btn
+      position absolute
+      right 4px
 
   .edit-stock
     .el-input-number

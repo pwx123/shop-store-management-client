@@ -509,7 +509,16 @@
         width="300px"
         :visible.sync="editTableDialog">
       <div class="edit-table-dialog">
-        <span class="tips"><i class="el-icon-info"></i> 拖拽可排序</span>
+        <div class="tips">
+          <span>
+            <i class="el-icon-info"></i> 拖拽可排序
+          </span>
+          <el-button type="text"
+              size="mini"
+              @click="resetEditTable">
+            恢复默认
+          </el-button>
+        </div>
         <SlickList lockAxis="y"
             class="slick-list"
             helperClass="slick-helper"
@@ -522,7 +531,8 @@
               :key="item.name">
             <span v-handle class="handle"></span>
             <el-checkbox v-model="selectEditTable"
-                :label="item.name">
+                :label="item.name"
+                :disabled="item.name === 'orderId'">
               {{(index + 1) + " - " + item.title}}
             </el-checkbox>
           </SlickItem>
@@ -551,7 +561,7 @@
   import {timeFormat, getDatePickerTime, handleError} from "./../../util/util";
   import {SlickList, SlickItem, HandleDirective} from "vue-slicksort";
 
-  const STORAGE_NAME = 'orderListTable';
+  const STORAGE_NAME = "orderListTable";
 
   export default {
     data() {
@@ -823,7 +833,7 @@
       this.getAllDeliveryCompany();
       this.getProvinceInfo();
       let tableItemStorage = localStorage.getItem(STORAGE_NAME);
-      if (tableItemStorage){
+      if (tableItemStorage) {
         this.tableItem = JSON.parse(tableItemStorage);
       }
       this.initSelectEditTable();
@@ -1190,7 +1200,7 @@
       submitEditTable() {
         for (let i = 0, iLen = this.editTableItem.length; i < iLen; i++) {
           for (var j = 0, jLen = this.selectEditTable.length; j < jLen; j++) {
-            if(this.editTableItem[i].name === this.selectEditTable[j]){
+            if (this.editTableItem[i].name === this.selectEditTable[j]) {
               this.editTableItem[i].isShow = true;
               break;
             }
@@ -1203,16 +1213,21 @@
         this.tableItem = this.editTableItem;
         this.initSelectEditTable();
         localStorage.setItem(STORAGE_NAME, JSON.stringify(this.tableItem));
-        this.$emit('reload');
+        this.$emit("reload");
       },
       // 初始化编辑表格select
-      initSelectEditTable(){
+      initSelectEditTable() {
         this.selectEditTable = [];
         this.tableItem.forEach(item => {
           if (item.isShow) {
             this.selectEditTable.push(item.name);
           }
         });
+      },
+      // 重置编辑表格
+      resetEditTable() {
+        localStorage.removeItem(STORAGE_NAME);
+        this.$emit("reload");
       },
       // 选择收货地址
       selectAddressRadio(id) {

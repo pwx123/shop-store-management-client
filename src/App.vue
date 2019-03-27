@@ -78,11 +78,16 @@
   }
 
   .edit-table-dialog .tips {
+    display: flex;
+    width: 100%;
     position: absolute;
-    top: -25px;
+    top: -30px;
+    justify-content: space-between;
+    align-items: center;
     font-size: 13px;
     color: #66b1ff;
   }
+
 
   .edit-table-dialog .slick-list {
     background-color: #f3f3f3;

@@ -46,6 +46,14 @@
           size="medium"
           @click.native="resetSearch">重置
       </el-button>
+      <el-button type="primary"
+          class="edit-btn"
+          title="编辑表格"
+          size="medium"
+          icon="el-icon-edit-outline"
+          circle
+          @click.native="editTable">
+      </el-button>
     </div>
     <div class="table-container">
       <el-table size="mini"
@@ -54,32 +62,36 @@
           :header-cell-style="{background: '#fdfdfd'}"
           :height="460"
           border>
-        <el-table-column
-            align="center"
-            label="退款流水号"
-            width="190">
-          <template slot-scope="scope">
-            <el-tooltip effect="dark"
-                content="点击复制"
-                placement="top"
-                :enterable="false">
+        <template v-for="item in tableItem">
+          <el-table-column v-if="(item.name === 'refundOrderId') && item.isShow"
+              key="refundOrderId"
+              align="center"
+              label="退款流水号"
+              width="190">
+            <template slot-scope="scope">
+              <el-tooltip effect="dark"
+                  content="点击复制"
+                  placement="top"
+                  :enterable="false">
               <span v-clipboard:copy="scope.row.refundOrderId"
                   v-clipboard:success="onCopySuccess"
                   v-clipboard:error="onCopyError">
                 {{scope.row.refundOrderId}}
               </span>
-            </el-tooltip>
-          </template>
-        </el-table-column>
-        <el-table-column prop="orderNumId"
-            align="center"
-            label="订单编号"
-            width="190">
-          <template slot-scope="scope">
-            <el-tooltip effect="dark"
-                content="点击复制"
-                placement="top"
-                :enterable="false">
+              </el-tooltip>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'orderNumId') && item.isShow"
+              key="orderNumId"
+              prop="orderNumId"
+              align="center"
+              label="订单编号"
+              width="190">
+            <template slot-scope="scope">
+              <el-tooltip effect="dark"
+                  content="点击复制"
+                  placement="top"
+                  :enterable="false">
               <span v-clipboard:copy="scope.row.orderNumId"
                   v-clipboard:success="onCopySuccess"
                   v-clipboard:error="onCopyError">
@@ -89,49 +101,60 @@
                     @click="showOrderDetail(scope.row.orderNumId)">{{scope.row.orderNumId}}
                 </el-button>
               </span>
-            </el-tooltip>
-          </template>
-        </el-table-column>
-        <el-table-column prop="userName"
-            align="center"
-            label="用户账号"
-            width="130">
-          <template slot-scope="scope">
-            <el-tooltip effect="dark"
-                content="点击复制"
-                placement="top"
-                :enterable="false">
+              </el-tooltip>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'userName') && item.isShow"
+              key="userName"
+              prop="userName"
+              align="center"
+              label="用户账号"
+              width="130">
+            <template slot-scope="scope">
+              <el-tooltip effect="dark"
+                  content="点击复制"
+                  placement="top"
+                  :enterable="false">
               <span v-clipboard:copy="scope.row.userName"
                   v-clipboard:success="onCopySuccess"
                   v-clipboard:error="onCopyError">
                 {{scope.row.userName}}
               </span>
-            </el-tooltip>
-          </template>
-        </el-table-column>
-        <el-table-column align="center"
-            label="订单状态"
-            width="120">
-          <template slot-scope="scope">
-            <span :style="'color: ' + statusMap[scope.row.status].color">{{statusMap[scope.row.status].val}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column align="center"
-            label="退款金额"
-            width="100">
-          <template slot-scope="scope">
-            <span v-if="scope.row.refundMoney">{{ scope.row.refundMoney | money}}</span>
-            <span v-else>--</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="remark"
-            align="center"
-            min-width="300"
-            label="备注"></el-table-column>
-        <el-table-column prop="createdAt"
-            align="center"
-            label="操作时间"
-            width="180"></el-table-column>
+              </el-tooltip>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'status') && item.isShow"
+              key="status"
+              align="center"
+              label="订单状态"
+              width="120">
+            <template slot-scope="scope">
+              <span :style="'color: ' + statusMap[scope.row.status].color">{{statusMap[scope.row.status].val}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'refundMoney') && item.isShow"
+              key="refundMoney"
+              align="center"
+              label="退款金额"
+              width="100">
+            <template slot-scope="scope">
+              <span v-if="scope.row.refundMoney">{{ scope.row.refundMoney | money}}</span>
+              <span v-else>--</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'remark') && item.isShow"
+              key="remark"
+              prop="remark"
+              align="center"
+              min-width="300"
+              label="备注"></el-table-column>
+          <el-table-column v-if="(item.name === 'createdAt') && item.isShow"
+              key="createdAt"
+              prop="createdAt"
+              align="center"
+              label="操作时间"
+              width="180"></el-table-column>
+        </template>
       </el-table>
       <el-pagination background
           @size-change="handleSizeChange"
@@ -196,7 +219,6 @@
                 </div>
               </div>
             </el-collapse-transition>
-
           </el-form-item>
           <el-form-item label="商品总价">
             <span>{{orderDetail.orderMoney | money}}</span>
@@ -237,6 +259,49 @@
             @click="detailDialog = false">确 定</el-button>
       </span>
     </el-dialog>
+    <el-dialog title="编辑表格"
+        top="60px"
+        width="300px"
+        :visible.sync="editTableDialog">
+      <div class="edit-table-dialog">
+        <div class="tips">
+          <span>
+            <i class="el-icon-info"></i> 拖拽可排序
+          </span>
+          <el-button type="text"
+              size="mini"
+              @click="resetEditTable">
+            恢复默认
+          </el-button>
+        </div>
+        <SlickList lockAxis="y"
+            class="slick-list"
+            helperClass="slick-helper"
+            :useDragHandle="true"
+            v-model="editTableItem">
+          <SlickItem v-for="(item, index) in editTableItem"
+              class="slick-item"
+              :index="index"
+              :showHandle="true"
+              :key="item.name">
+            <span v-handle class="handle"></span>
+            <el-checkbox v-model="selectEditTable"
+                :label="item.name"
+                :disabled="item.name === 'refundOrderId'">
+              {{(index + 1) + " - " + item.title}}
+            </el-checkbox>
+          </SlickItem>
+        </SlickList>
+      </div>
+      <span slot="footer"
+          class="dialog-footer">
+        <el-button size="small"
+            @click="editTableDialog = false">取 消</el-button>
+        <el-button size="small"
+            type="primary"
+            @click="submitEditTable">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -244,6 +309,9 @@
   import {getRefundRecord, getOrderByOrderId, getAllDeliveryCompany} from "./../../api/order";
   import {getOrderAddressById} from "./../../api/user";
   import {getDatePickerTime, handleError} from "./../../util/util";
+  import {SlickList, SlickItem, HandleDirective} from "vue-slicksort";
+
+  const STORAGE_NAME = "refundOrderRecordTable";
 
   export default {
     data() {
@@ -266,6 +334,12 @@
         detailDialog: false,
         // 展示图书详情
         showBooks: false,
+        // 编辑表格弹窗
+        editTableDialog: false,
+        // 临时编辑表格数据
+        editTableItem: [],
+        // 编辑表格要显示的
+        selectEditTable: [],
         // 搜索参数
         searchParam: {
           pageNumber: 1,
@@ -288,7 +362,43 @@
             label: "拒绝退款",
             color: "#909399"
           }
-        ]
+        ],
+        tableItem: [
+          {
+            name: "refundOrderId",
+            title: "退款流水号",
+            isShow: true
+          },
+          {
+            name: "orderNumId",
+            title: "订单编号",
+            isShow: true
+          },
+          {
+            name: "userName",
+            title: "用户账户",
+            isShow: true
+          },
+          {
+            name: "status",
+            title: "状态",
+            isShow: true
+          },
+          {
+            name: "refundMoney",
+            title: "退款金额",
+            isShow: true
+          },
+          {
+            name: "remark",
+            title: "备注",
+            isShow: true
+          },
+          {
+            name: "createdAt",
+            title: "创建时间",
+            isShow: true
+          }]
       };
     },
     computed: {
@@ -316,6 +426,11 @@
       this.dataPicker = getDatePickerTime(30);
       this.getOrderRefundRecord();
       this.getAllDeliveryCompanyFun();
+      let tableItemStorage = localStorage.getItem(STORAGE_NAME);
+      if (tableItemStorage) {
+        this.tableItem = JSON.parse(tableItemStorage);
+      }
+      this.initSelectEditTable();
     },
     methods: {
       // 执行搜索
@@ -394,6 +509,44 @@
       showBookToggle() {
         this.showBooks = !this.showBooks;
       },
+      // 编辑表格
+      editTable() {
+        this.editTableDialog = true;
+        this.editTableItem = this.tableItem.concat();
+      },
+      // 编辑表格确认修改
+      submitEditTable() {
+        for (let i = 0, iLen = this.editTableItem.length; i < iLen; i++) {
+          for (var j = 0, jLen = this.selectEditTable.length; j < jLen; j++) {
+            if (this.editTableItem[i].name === this.selectEditTable[j]) {
+              this.editTableItem[i].isShow = true;
+              break;
+            }
+          }
+          if (j === jLen) {
+            this.editTableItem[i].isShow = false;
+          }
+        }
+        this.editTableDialog = false;
+        this.tableItem = this.editTableItem;
+        this.initSelectEditTable();
+        localStorage.setItem(STORAGE_NAME, JSON.stringify(this.tableItem));
+        this.$emit("reload");
+      },
+      // 初始化编辑表格select
+      initSelectEditTable() {
+        this.selectEditTable = [];
+        this.tableItem.forEach(item => {
+          if (item.isShow) {
+            this.selectEditTable.push(item.name);
+          }
+        });
+      },
+      // 重置编辑表格
+      resetEditTable() {
+        localStorage.removeItem(STORAGE_NAME);
+        this.$emit("reload");
+      },
       // 重置搜索条件
       resetSearch() {
         this.dataPicker = getDatePickerTime(30);
@@ -433,7 +586,12 @@
           type: "error"
         });
       }
-    }
+    },
+    components: {
+      SlickItem,
+      SlickList
+    },
+    directives: {handle: HandleDirective}
   };
 </script>
 
@@ -455,6 +613,14 @@
       max-width 140px
       margin-right 10px
       margin-bottom 10px
+
+  .option-button
+    position relative
+    padding-right 50px
+
+    .edit-btn
+      position absolute
+      right 4px
 
   .table-container
     margin-top 20px

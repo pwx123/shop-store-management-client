@@ -36,6 +36,14 @@
           size="medium"
           @click.native="resetSearch">重置
       </el-button>
+      <el-button type="primary"
+          class="edit-btn"
+          title="编辑表格"
+          size="medium"
+          icon="el-icon-edit-outline"
+          circle
+          @click.native="editTable">
+      </el-button>
     </div>
     <div class="table-container">
       <el-table size="mini"
@@ -44,29 +52,41 @@
           :header-cell-style="{background: '#fdfdfd'}"
           :height="460"
           border>
-        <el-table-column prop="optionName"
-            align="center"
-            label="操作账号"
-            width="160"></el-table-column>
-        <el-table-column prop="optionNickname"
-            align="center"
-            label="操作人"
-            width="160"></el-table-column>
-        <el-table-column align="center"
-            label="操作类型"
-            width="140">
-          <template slot-scope="scope">
-            <span>{{optionTypeMap[scope.row.optionType]}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="remark"
-            align="center"
-            min-width="300"
-            label="备注"></el-table-column>
-        <el-table-column prop="createdAt"
-            align="center"
-            label="操作时间"
-            width="180"></el-table-column>
+        <template v-for="item in tableItem">
+          <el-table-column v-if="(item.name === 'optionName') && item.isShow"
+              key="optionName"
+              prop="optionName"
+              align="center"
+              label="操作账号"
+              width="160"></el-table-column>
+          <el-table-column v-if="(item.name === 'optionNickname') && item.isShow"
+              key="optionNickname"
+              prop="optionNickname"
+              align="center"
+              label="操作人"
+              width="160"></el-table-column>
+          <el-table-column v-if="(item.name === 'optionType') && item.isShow"
+              key="optionType"
+              align="center"
+              label="操作类型"
+              width="140">
+            <template slot-scope="scope">
+              <span>{{optionTypeMap[scope.row.optionType]}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'remark') && item.isShow"
+              key="remark"
+              prop="remark"
+              align="center"
+              min-width="300"
+              label="备注"></el-table-column>
+          <el-table-column v-if="(item.name === 'createdAt') && item.isShow"
+              key="createdAt"
+              prop="createdAt"
+              align="center"
+              label="操作时间"
+              width="180"></el-table-column>
+        </template>
       </el-table>
       <el-pagination background
           @size-change="handleSizeChange"
@@ -77,12 +97,58 @@
           layout="total, sizes, prev, pager, next, jumper"
           :total="total"></el-pagination>
     </div>
+    <el-dialog title="编辑表格"
+        top="60px"
+        width="300px"
+        :visible.sync="editTableDialog">
+      <div class="edit-table-dialog">
+        <div class="tips">
+          <span>
+            <i class="el-icon-info"></i> 拖拽可排序
+          </span>
+          <el-button type="text"
+              size="mini"
+              @click="resetEditTable">
+            恢复默认
+          </el-button>
+        </div>
+        <SlickList lockAxis="y"
+            class="slick-list"
+            helperClass="slick-helper"
+            :useDragHandle="true"
+            v-model="editTableItem">
+          <SlickItem v-for="(item, index) in editTableItem"
+              class="slick-item"
+              :index="index"
+              :showHandle="true"
+              :key="item.name">
+            <span v-handle class="handle"></span>
+            <el-checkbox v-model="selectEditTable"
+                :label="item.name"
+                :disabled="item.name === 'name'">
+              {{(index + 1) + " - " + item.title}}
+            </el-checkbox>
+          </SlickItem>
+        </SlickList>
+      </div>
+      <span slot="footer"
+          class="dialog-footer">
+        <el-button size="small"
+            @click="editTableDialog = false">取 消</el-button>
+        <el-button size="small"
+            type="primary"
+            @click="submitEditTable">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
   import {getOptionRecord} from "./../../api/shop";
   import {timeFormat, getDatePickerTime, handleError} from "./../../util/util";
+  import {SlickList, SlickItem, HandleDirective} from "vue-slicksort";
+
+  const STORAGE_NAME = "shopOptionRecordTable";
 
   export default {
     data() {
@@ -104,6 +170,12 @@
           optionType: "",
           name: ""
         },
+        // 编辑表格弹窗
+        editTableDialog: false,
+        // 临时编辑表格数据
+        editTableItem: [],
+        // 编辑表格要显示的
+        selectEditTable: [],
         optionType: [
           {
             value: 0,
@@ -117,7 +189,33 @@
             value: 2,
             label: "店铺介绍"
           }
-        ]
+        ],
+        tableItem: [
+          {
+            name: "optionName",
+            title: "操作账号",
+            isShow: true
+          },
+          {
+            name: "optionNickname",
+            title: "操作人",
+            isShow: true
+          },
+          {
+            name: "optionType",
+            title: "操作类型",
+            isShow: true
+          },
+          {
+            name: "remark",
+            title: "备注",
+            isShow: true
+          },
+          {
+            name: "createdAt",
+            title: "操作时间",
+            isShow: true
+          }]
       };
     },
     computed: {
@@ -133,6 +231,11 @@
       // 默认查一个月的
       this.dataPicker = getDatePickerTime(30);
       this.getShopOptionRecord();
+      let tableItemStorage = localStorage.getItem(STORAGE_NAME);
+      if (tableItemStorage) {
+        this.tableItem = JSON.parse(tableItemStorage);
+      }
+      this.initSelectEditTable();
     },
     methods: {
       // 执行搜索
@@ -175,6 +278,44 @@
         };
         this.getShopOptionRecord();
       },
+      // 编辑表格
+      editTable() {
+        this.editTableDialog = true;
+        this.editTableItem = this.tableItem.concat();
+      },
+      // 编辑表格确认修改
+      submitEditTable() {
+        for (let i = 0, iLen = this.editTableItem.length; i < iLen; i++) {
+          for (var j = 0, jLen = this.selectEditTable.length; j < jLen; j++) {
+            if (this.editTableItem[i].name === this.selectEditTable[j]) {
+              this.editTableItem[i].isShow = true;
+              break;
+            }
+          }
+          if (j === jLen) {
+            this.editTableItem[i].isShow = false;
+          }
+        }
+        this.editTableDialog = false;
+        this.tableItem = this.editTableItem;
+        this.initSelectEditTable();
+        localStorage.setItem(STORAGE_NAME, JSON.stringify(this.tableItem));
+        this.$emit("reload");
+      },
+      // 初始化编辑表格select
+      initSelectEditTable() {
+        this.selectEditTable = [];
+        this.tableItem.forEach(item => {
+          if (item.isShow) {
+            this.selectEditTable.push(item.name);
+          }
+        });
+      },
+      // 重置编辑表格
+      resetEditTable() {
+        localStorage.removeItem(STORAGE_NAME);
+        this.$emit("reload");
+      },
       // 每页页数变化
       handleSizeChange(val) {
         this.searchParam.pageSize = val;
@@ -185,7 +326,12 @@
         this.searchParam.pageNumber = val;
         this.getShopOptionRecord();
       }
-    }
+    },
+    components: {
+      SlickItem,
+      SlickList
+    },
+    directives: {handle: HandleDirective}
   };
 </script>
 
@@ -211,4 +357,12 @@
 
     .el-pagination
       margin-top 20px
+
+  .option-button
+    position relative
+    padding-right 50px
+
+    .edit-btn
+      position absolute
+      right 4px
 </style>

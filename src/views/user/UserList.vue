@@ -45,6 +45,14 @@
           size="medium"
           @click.native="resetSearch">重置
       </el-button>
+      <el-button type="primary"
+          class="edit-btn"
+          title="编辑表格"
+          size="medium"
+          icon="el-icon-edit-outline"
+          circle
+          @click.native="editTable">
+      </el-button>
     </div>
     <div class="table-container">
       <el-table size="mini"
@@ -53,60 +61,78 @@
           :header-cell-style="{background: '#fdfdfd'}"
           :height="460"
           border>
-        <el-table-column prop="name"
-            align="center"
-            label="用户账号"
-            width="140"></el-table-column>
-        <el-table-column prop="nickname"
-            align="center"
-            label="用户名"
-            width="140"></el-table-column>
-        <el-table-column align="center"
-            label="性别"
-            width="60">
-          <template slot-scope="scope">
-            <span>{{sexMap[scope.row.sex]}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column align="center"
-            label="状态"
-            width="120">
-          <template slot-scope="scope">
-            <el-switch v-model="scope.row.status"
-                :active-value="0"
-                :inactive-value="1"
-                @change="changeUserStatusFun(scope.row)">
-            </el-switch>
-            <span v-if="scope.row.status == 0"
-                class="status-success">{{statusMap[scope.row.status]}}</span>
-            <span v-else
-                class="status-failed">{{statusMap[scope.row.status]}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="email"
-            align="center"
-            label="邮箱"
-            width="160"></el-table-column>
-        <el-table-column align="center"
-            label="头像"
-            width="100">
-          <template slot-scope="scope">
-            <el-button v-if="scope.row.avatarUrl"
-                type="text"
-                size="mini"
-                @click.native="showImgDialogFun(scope.row.avatarUrl)">查看图片
-            </el-button>
-            <span v-else>---</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="createdAt"
-            align="center"
-            label="注册时间"
-            width="180"></el-table-column>
-        <el-table-column prop="updatedAt"
-            align="center"
-            label="更新时间"
-            width="180"></el-table-column>
+        <template v-for="item in tableItem">
+          <el-table-column v-if="(item.name === 'name') && item.isShow"
+              key="name"
+              prop="name"
+              align="center"
+              label="用户账号"
+              width="140"></el-table-column>
+          <el-table-column v-if="(item.name === 'nickname') && item.isShow"
+              key="nickname"
+              prop="nickname"
+              align="center"
+              label="用户名"
+              width="140"></el-table-column>
+          <el-table-column v-if="(item.name === 'sex') && item.isShow"
+              key="sex"
+              align="center"
+              label="性别"
+              width="60">
+            <template slot-scope="scope">
+              <span>{{sexMap[scope.row.sex]}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'status') && item.isShow"
+              key="status"
+              align="center"
+              label="状态"
+              width="120">
+            <template slot-scope="scope">
+              <el-switch v-model="scope.row.status"
+                  :active-value="0"
+                  :inactive-value="1"
+                  @change="changeUserStatusFun(scope.row)">
+              </el-switch>
+              <span v-if="scope.row.status === 0"
+                  class="status-success">{{statusMap[scope.row.status]}}</span>
+              <span v-else
+                  class="status-failed">{{statusMap[scope.row.status]}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'email') && item.isShow"
+              key="email"
+              prop="email"
+              align="center"
+              label="邮箱"
+              width="160"></el-table-column>
+          <el-table-column v-if="(item.name === 'avatarUrl') && item.isShow"
+              key="avatarUrl"
+              align="center"
+              label="头像"
+              width="100">
+            <template slot-scope="scope">
+              <el-button v-if="scope.row.avatarUrl"
+                  type="text"
+                  size="mini"
+                  @click.native="showImgDialogFun(scope.row.avatarUrl)">查看图片
+              </el-button>
+              <span v-else>---</span>
+            </template>
+          </el-table-column>
+          <el-table-column v-if="(item.name === 'createdAt') && item.isShow"
+              key="createdAt"
+              prop="createdAt"
+              align="center"
+              label="注册时间"
+              width="180"></el-table-column>
+          <el-table-column v-if="(item.name === 'updatedAt  ') && item.isShow"
+              key="updatedAt  "
+              prop="updatedAt"
+              align="center"
+              label="更新时间"
+              width="180"></el-table-column>
+        </template>
         <el-table-column fixed="right"
             align="center"
             label="操作"
@@ -202,6 +228,49 @@
             alt="图片详情">
       </div>
     </el-dialog>
+    <el-dialog title="编辑表格"
+        top="60px"
+        width="300px"
+        :visible.sync="editTableDialog">
+      <div class="edit-table-dialog">
+        <div class="tips">
+          <span>
+            <i class="el-icon-info"></i> 拖拽可排序
+          </span>
+          <el-button type="text"
+              size="mini"
+              @click="resetEditTable">
+            恢复默认
+          </el-button>
+        </div>
+        <SlickList lockAxis="y"
+            class="slick-list"
+            helperClass="slick-helper"
+            :useDragHandle="true"
+            v-model="editTableItem">
+          <SlickItem v-for="(item, index) in editTableItem"
+              class="slick-item"
+              :index="index"
+              :showHandle="true"
+              :key="item.name">
+            <span v-handle class="handle"></span>
+            <el-checkbox v-model="selectEditTable"
+                :label="item.name"
+                :disabled="item.name === 'name'">
+              {{(index + 1) + " - " + item.title}}
+            </el-checkbox>
+          </SlickItem>
+        </SlickList>
+      </div>
+      <span slot="footer"
+          class="dialog-footer">
+        <el-button size="small"
+            @click="editTableDialog = false">取 消</el-button>
+        <el-button size="small"
+            type="primary"
+            @click="submitEditTable">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -209,6 +278,9 @@
   import * as userApi from "./../../api/user";
   import Base64 from "./../../util/base64";
   import {timeFormat, getDatePickerTime, handleError} from "./../../util/util";
+  import {SlickList, SlickItem, HandleDirective} from "vue-slicksort";
+
+  const STORAGE_NAME = "userListTable";
 
   export default {
     data() {
@@ -233,6 +305,12 @@
         showImageUrl: "",
         // 查看大图弹窗
         showImgDialog: false,
+        // 编辑表格弹窗
+        editTableDialog: false,
+        // 临时编辑表格数据
+        editTableItem: [],
+        // 编辑表格要显示的
+        selectEditTable: [],
         // 搜索参数
         searchParam: {
           pageNumber: 1,
@@ -262,7 +340,47 @@
             value: 1,
             label: "女"
           }
-        ]
+        ],
+        tableItem: [
+          {
+            name: "name",
+            title: "用户账户",
+            isShow: true
+          },
+          {
+            name: "nickname",
+            title: "用户名",
+            isShow: true
+          },
+          {
+            name: "sex",
+            title: "性别",
+            isShow: true
+          },
+          {
+            name: "status",
+            title: "状态",
+            isShow: true
+          },
+          {
+            name: "email",
+            title: "邮箱",
+            isShow: true
+          },
+          {
+            name: "avatarUrl",
+            title: "头像",
+            isShow: true
+          },
+          {
+            name: "createdAt",
+            title: "注册时间",
+            isShow: true
+          }, {
+            name: "updatedAt",
+            title: "更新时间",
+            isShow: true
+          }]
       };
     },
     computed: {
@@ -285,6 +403,11 @@
       // 默认查一个月的
       this.dataPicker = getDatePickerTime(30);
       this.getUserList();
+      let tableItemStorage = localStorage.getItem(STORAGE_NAME);
+      if (tableItemStorage) {
+        this.tableItem = JSON.parse(tableItemStorage);
+      }
+      this.initSelectEditTable();
     },
     methods: {
       // 执行搜索
@@ -322,6 +445,44 @@
           this.showImageUrl = imageUrl + this.getTimeUrl();
         }
         this.showImgDialog = true;
+      },
+      // 编辑表格
+      editTable() {
+        this.editTableDialog = true;
+        this.editTableItem = this.tableItem.concat();
+      },
+      // 编辑表格确认修改
+      submitEditTable() {
+        for (let i = 0, iLen = this.editTableItem.length; i < iLen; i++) {
+          for (var j = 0, jLen = this.selectEditTable.length; j < jLen; j++) {
+            if (this.editTableItem[i].name === this.selectEditTable[j]) {
+              this.editTableItem[i].isShow = true;
+              break;
+            }
+          }
+          if (j === jLen) {
+            this.editTableItem[i].isShow = false;
+          }
+        }
+        this.editTableDialog = false;
+        this.tableItem = this.editTableItem;
+        this.initSelectEditTable();
+        localStorage.setItem(STORAGE_NAME, JSON.stringify(this.tableItem));
+        this.$emit("reload");
+      },
+      // 初始化编辑表格select
+      initSelectEditTable() {
+        this.selectEditTable = [];
+        this.tableItem.forEach(item => {
+          if (item.isShow) {
+            this.selectEditTable.push(item.name);
+          }
+        });
+      },
+      // 重置编辑表格
+      resetEditTable() {
+        localStorage.removeItem(STORAGE_NAME);
+        this.$emit("reload");
       },
       // 重置搜索条件
       resetSearch() {
@@ -459,7 +620,12 @@
         this.searchParam.pageNumber = val;
         this.getUserList();
       }
-    }
+    },
+    components: {
+      SlickItem,
+      SlickList
+    },
+    directives: {handle: HandleDirective}
   };
 </script>
 
@@ -485,6 +651,14 @@
       max-width 100px
       margin-right 10px
       margin-bottom 10px
+
+  .option-button
+    position relative
+    padding-right 50px
+
+    .edit-btn
+      position absolute
+      right 4px
 
   .table-container
     margin-top 20px
