@@ -20,7 +20,7 @@
     height: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden;
+    min-width: 1200px;
     font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB,
     Microsoft YaHei, SimSun, sans-serif;
     font-size: 14px;

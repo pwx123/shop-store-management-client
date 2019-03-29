@@ -15,3 +15,7 @@ export const getCityByProvince = params => post("/getCityByProvince", params);
 export const getCountryByCity = params => post("/getCountryByCity", params);
 // 根据物流单号获取物流信息
 export const getDeliveryInfoById = params => post("/getDeliveryInfoById", params);
+// 获取首页订单信息
+export const getOrderStatistics = params => post("/getOrderStatistics", params);
+// 获取首页日周月信息
+export const getOrderStatisticsByType = params => post("/getOrderStatisticsByType", params);

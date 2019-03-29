@@ -18,7 +18,7 @@ const StockPurchase = () => import( /* webpackChunkName: "StockPurchase" */ "@/v
 const StockRecord = () => import( /* webpackChunkName: "StockRecord" */ "@/views/stock/StockRecord");
 const AdminInfo = () => import( /* webpackChunkName: "AdminInfo" */ "@/views/system/AdminInfo");
 const ShopManagement = () => import( /* webpackChunkName: "ShopManagement" */ "@/views/system/ShopManagement");
-const ShopOptionRecord = () => import( /* webpackChunkName: "ShopOptionRecord." */ "@/views/system/ShopOptionRecord");
+const ShopOptionRecord = () => import( /* webpackChunkName: "ShopOptionRecord" */ "@/views/system/ShopOptionRecord");
 
 Vue.use(Router);
 
