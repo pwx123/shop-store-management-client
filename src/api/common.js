@@ -19,3 +19,7 @@ export const getDeliveryInfoById = params => post("/getDeliveryInfoById", params
 export const getOrderStatistics = params => post("/getOrderStatistics", params);
 // 获取首页日周月信息
 export const getOrderStatisticsByType = params => post("/getOrderStatisticsByType", params);
+// 获取本月top10信息
+export const getTop10Info = params => post("/getTop10Info", params);
+// 获取趋势变化信息
+export const getTrendInfo = params => post("/getTrendInfo", params);

@@ -8,10 +8,20 @@
   <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
   <link rel="stylesheet" href="http://at.alicdn.com/t/font_1049430_bia30cxobgp.css">
 </head>
-
+<style>
+  .index-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%)
+  }
+</style>
 <body>
-  <div id="app"></div>
-  <!-- built files will be auto injected -->
+<div id="app">
+  <div class="index-loading">
+    <img src="./bars.svg" width="40" alt="">
+  </div>
+</div>
 </body>
 
 </html>

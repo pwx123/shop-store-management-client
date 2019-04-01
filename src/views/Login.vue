@@ -168,7 +168,7 @@
 
       .main-bg
         flex 1
-        background-image url('http://127.0.0.1/images/login/login-bg-2.jpg')
+        background-image url('/images/login/login-bg-2.jpg')
         background-repeat no-repeat
         background-size cover
         box-shadow 0 0 100px 60px rgba(255, 255, 255, 0.7) inset

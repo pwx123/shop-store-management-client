@@ -31,7 +31,7 @@
           销量统计
         </div>
         <div class="option">
-          <el-radio-group size="mini" v-model="saleOption" @change="saleOptionChange">
+          <el-radio-group @change="saleOptionChange" size="mini" v-model="saleOption">
             <el-radio-button :label="0">销量(本)</el-radio-button>
             <el-radio-button :label="1">销售额(元)</el-radio-button>
           </el-radio-group>
@@ -47,33 +47,33 @@
         <ul>
           <li>
             <span>书籍名称</span>
-            <span>销售数量</span>
+            <span>销售数量(本)</span>
             <span>排行</span>
           </li>
-          <li :key="item.name" v-for="(item,index) in bookTop10">
-            <span>{{item.name}}</span>
-            <span>{{item.num}}</span>
-            <span>{{index < 3 ? "": (index+1)}}
-            <span :class="topClass(index)" v-if="index < 3"></span>
+          <li :class="'trans-li-' + index + (isActive ? ' active' : '')" :key="index" v-for="(item,index) in topInfo.book">
+            <span>{{item ? item.bookName : "--"}}</span>
+            <span>{{item ? item.bookCount : "--"}}</span>
+            <span>{{item ? (index < 3 ? "" : index+1) : "--"}}
+            <span :class="topClass(index)" v-if="(index < 3) && item"></span>
             </span>
           </li>
         </ul>
       </div>
       <div>
         <div class="title">
-          本月分类销量Top 10
+          本月进货Top 10
         </div>
         <ul>
           <li>
-            <span>分类名称</span>
-            <span>销售数量</span>
+            <span>书籍名称</span>
+            <span>进货数量(本)</span>
             <span>排行</span>
           </li>
-          <li :key="item.name" v-for="(item,index) in classifyTop10">
-            <span>{{item.name}}</span>
-            <span>{{item.num}}</span>
-            <span>{{index < 3 ? "": (index+1)}}
-            <span :class="topClass(index)" v-if="index < 3"></span>
+          <li :class="'trans-li-' + index + (isActive ? ' active' : '')" :key="index" v-for="(item,index) in topInfo.stock">
+            <span>{{item ? item.bookName : "--"}}</span>
+            <span>{{item ? item.stockNum : "--"}}</span>
+            <span>{{item ? (index < 3 ? "" : index+1) : "--"}}
+            <span :class="topClass(index)" v-if="(index < 3) && item"></span>
             </span>
           </li>
         </ul>
@@ -85,14 +85,15 @@
         <ul>
           <li>
             <span>会员名称</span>
-            <span>消费金额</span>
+            <span>消费金额(元)</span>
             <span>排行</span>
           </li>
-          <li :key="item.name" v-for="(item,index) in userTop10">
-            <span>{{item.name}}</span>
-            <span>{{item.num}}</span>
-            <span>{{index < 3 ? "": (index+1)}}
-            <span :class="topClass(index)" v-if="index < 3"></span>
+          <li :class="'trans-li-' + index + (isActive ? ' active' : '')" :key="index" v-for="(item,index) in topInfo.user">
+            <span>{{item ? item.userName : "--"}}</span>
+            <span v-if="item">{{item.userMoney | money}}</span>
+            <span v-else>--</span>
+            <span>{{item ? (index < 3 ? "" : index+1) : "--"}}
+            <span :class="topClass(index)" v-if="(index < 3) && item"></span>
             </span>
           </li>
         </ul>
@@ -103,7 +104,7 @@
         销量走势
       </div>
       <div class="option">
-        <el-radio-group size="mini" v-model="trendOption">
+        <el-radio-group @change="trendOptionChange" size="mini" v-model="trendOption">
           <el-radio-button :label="0">销量(本)</el-radio-button>
           <el-radio-button :label="1">销售额(元)</el-radio-button>
         </el-radio-group>
@@ -134,10 +135,8 @@
       return {
         // 默认头像
         defaultAvatar: this.$basePath + "/images/admin/default.png",
-        // 每月销售量
-        monthSaleCountData: [],
-        // 每月销售额
-        monthSaleMoneyData: [],
+        // 动画开关
+        isActive: false,
         // 切换销售额/销售量
         saleOption: 0,
         // 切换销售额/销售 走势
@@ -146,41 +145,39 @@
         orderStatistics: {},
         // 订单日周月信息
         orderStatisticsType: {},
-        // 书籍top
-        bookTop10: [
-          {
-            name: "12",
-            num: 12
-          },
-          {
-            name: "13",
-            num: 12
-          },
-          {
-            name: "14",
-            num: 12
-          },
-          {
-            name: "15",
-            num: 12
-          }
-        ],
-        classifyTop10: [],
-        userTop10: []
+        // top信息
+        topInfo: {
+          book: [],
+          stock: [],
+          user: []
+        },
+        // 趋势信息
+        trendData: []
       };
     },
     computed: {
       orderStatisticsTypeArr() {
-        return [this.orderStatisticsType.month, this.orderStatisticsType.week, this.orderStatisticsType.today];
+        return [this.orderStatisticsType.month || 0, this.orderStatisticsType.week || 0, this.orderStatisticsType.today || 0];
+      },
+      trendDataDay() {
+        let arr = [];
+        arr = this.trendData.map(item => item.day);
+        return arr;
+      },
+      trendDataCount() {
+        let arr = [];
+        arr = this.trendData.map(item => item.count);
+        return arr;
       },
       ...mapGetters(["userInfo"])
     },
     created() {
       this.getOrderStatistics();
-      this.getOrderStatisticsByType();
+      this.getTopInfo();
     },
     mounted() {
-      this.setMonthSaleCharts();
+      this.getOrderStatisticsByType();
+      this.getTrendInfoByType();
     },
     methods: {
       // 获取订单信息
@@ -206,6 +203,51 @@
           if (res.errorCode === 200) {
             this.orderStatisticsType = res.data;
             this.setSaleCharts();
+          } else {
+            this.$message({
+              message: res.errorMsg,
+              type: "error"
+            });
+          }
+        } catch (error) {
+          handleError(error);
+        }
+      },
+      // 获取top信息
+      async getTopInfo() {
+        try {
+          let res = await indexApi.getTop10Info();
+          ;
+          if (res.errorCode === 200) {
+            this.topInfo.book = new Array(10);
+            this.topInfo.stock = new Array(10);
+            this.topInfo.user = new Array(10);
+            for (let i = 0; i < 10; i++) {
+              this.topInfo.book[i] = res.data.book[i];
+              this.topInfo.stock[i] = res.data.stock[i];
+              this.topInfo.user[i] = res.data.user[i];
+            }
+            setTimeout(() => {
+              this.isActive = true;
+            }, 30);
+          } else {
+            this.$message({
+              message: res.errorMsg,
+              type: "error"
+            });
+          }
+        } catch (error) {
+          handleError(error);
+        }
+      },
+      // 获取趋势变化信息
+      async getTrendInfoByType() {
+        try {
+          let res = await indexApi.getTrendInfo({type: this.trendOption});
+          ;
+          if (res.errorCode === 200) {
+            this.trendData = res.data;
+            this.setMonthSaleCharts();
           } else {
             this.$message({
               message: res.errorMsg,
@@ -266,22 +308,29 @@
         let monthSale = echarts.init(document.getElementById("monthSale"), "walden");
         // 绘制图表
         monthSale.setOption({
+          tooltip: {
+            trigger: "axis"
+          },
           xAxis: {
             type: "category",
-            data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+            data: this.trendDataDay
           },
           yAxis: {
             type: "value"
           },
           series: [{
-            data: [820, 932, 901, 934, 1290, 1330, 1320],
+            data: this.trendDataCount,
             type: "line"
           }]
         });
       },
       // 日周月变化
-      saleOptionChange(){
+      saleOptionChange() {
         this.getOrderStatisticsByType();
+      },
+      // 日周月变化
+      trendOptionChange() {
+        this.getTrendInfoByType();
       }
     }
   };
@@ -375,16 +424,23 @@
           display flex
           line-height 36px
           border-bottom 1px dashed #ededed
+          transition all .5s
 
-          span
+          > span
             flex 1
             text-align center
+            display flex
+            justify-content center
 
-            &:first-child
-              overflow hidden
+          for i in (0 .. 9)
+            &.trans-li-{i}
+              transform translateY(-37px * i)
+
+          &.active
+            transform translateY(0)
 
           .top
-            display inline-block
+            display block
             width 30px
             height 30px
             background-size 100%
