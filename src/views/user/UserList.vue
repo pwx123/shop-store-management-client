@@ -126,7 +126,7 @@
               align="center"
               label="注册时间"
               width="180"></el-table-column>
-          <el-table-column v-if="(item.name === 'updatedAt  ') && item.isShow"
+          <el-table-column v-if="(item.name === 'updatedAt') && item.isShow"
               key="updatedAt  "
               prop="updatedAt"
               align="center"
@@ -136,7 +136,7 @@
         <el-table-column fixed="right"
             align="center"
             label="操作"
-            width="240">
+            width="200">
           <template slot-scope="scope">
             <el-button type="text"
                 size="mini"
@@ -145,10 +145,6 @@
             <el-button type="text"
                 size="mini"
                 @click.native="showDeliveryAddress(scope.row)">查看收货地址
-            </el-button>
-            <el-button type="text"
-                size="mini"
-                @click.native="showUserOrder(scope.row)">查看订单
             </el-button>
           </template>
         </el-table-column>
@@ -400,8 +396,6 @@
       }
     },
     created() {
-      // 默认查一个月的
-      this.dataPicker = getDatePickerTime(30);
       this.getUserList();
       let tableItemStorage = localStorage.getItem(STORAGE_NAME);
       if (tableItemStorage) {
@@ -486,7 +480,7 @@
       },
       // 重置搜索条件
       resetSearch() {
-        this.dataPicker = getDatePickerTime(30);
+        this.dataPicker = [];
         this.searchParam = {
           pageNumber: 1,
           pageSize: 15,

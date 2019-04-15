@@ -128,7 +128,7 @@
 
   import {mapGetters} from "vuex";
   import * as indexApi from "./../../api/common";
-  import {handleError} from "./../../util/util";
+  import {handleError, set2} from "./../../util/util";
 
   export default {
     data() {
@@ -159,15 +159,25 @@
       orderStatisticsTypeArr() {
         return [this.orderStatisticsType.month || 0, this.orderStatisticsType.week || 0, this.orderStatisticsType.today || 0];
       },
-      trendDataDay() {
-        let arr = [];
-        arr = this.trendData.map(item => item.day);
-        return arr;
-      },
-      trendDataCount() {
-        let arr = [];
-        arr = this.trendData.map(item => item.count);
-        return arr;
+      trendDataObj() {
+        let obj = {
+          day: [],
+          count: []
+        };
+        let day = [];
+        let time = new Date();
+        for (let i = 9; i >= 0; i--) {
+          let day = time.getFullYear() + "-" + set2(time.getMonth() + 1);
+          obj.day[i] = day;
+          time.setMonth(time.getMonth() - 1);
+          obj.count[i] = 0;
+          for (let j = 0, jLen = this.trendData.length; j < jLen; j++) {
+            if (day === this.trendData[j].day) {
+              obj.count[i] = this.trendData[j].count;
+            }
+          }
+        }
+        return obj;
       },
       ...mapGetters(["userInfo"])
     },
@@ -313,13 +323,13 @@
           },
           xAxis: {
             type: "category",
-            data: this.trendDataDay
+            data: this.trendDataObj.day
           },
           yAxis: {
             type: "value"
           },
           series: [{
-            data: this.trendDataCount,
+            data: this.trendDataObj.count,
             type: "line"
           }]
         });
