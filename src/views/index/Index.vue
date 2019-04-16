@@ -124,7 +124,10 @@
   require("echarts/lib/component/tooltip");
   require("echarts/lib/component/title");
   require("echarts/lib/component/grid");
-  require("echarts/theme/walden");
+
+  import walden from "./../../util/theme";
+
+  echarts.registerTheme("walden", walden);
 
   import {mapGetters} from "vuex";
   import * as indexApi from "./../../api/common";
@@ -164,7 +167,6 @@
           day: [],
           count: []
         };
-        let day = [];
         let time = new Date();
         for (let i = 9; i >= 0; i--) {
           let day = time.getFullYear() + "-" + set2(time.getMonth() + 1);
@@ -227,7 +229,6 @@
       async getTopInfo() {
         try {
           let res = await indexApi.getTop10Info();
-          ;
           if (res.errorCode === 200) {
             this.topInfo.book = new Array(10);
             this.topInfo.stock = new Array(10);
@@ -254,7 +255,6 @@
       async getTrendInfoByType() {
         try {
           let res = await indexApi.getTrendInfo({type: this.trendOption});
-          ;
           if (res.errorCode === 200) {
             this.trendData = res.data;
             this.setMonthSaleCharts();
