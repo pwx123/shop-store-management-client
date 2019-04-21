@@ -125,16 +125,22 @@
           </el-table-column>
           <el-table-column v-if="(item.name === 'title') && item.isShow"
               key="title"
-              prop="title"
               align="center"
               label="标题"
-              width="180"></el-table-column>
+              width="180">
+            <template slot-scope="scope">
+              <span :title="scope.row.title">{{scope.row.title ? scope.row.title.length > 8 ? scope.row.title.slice(0,10) + '...' : scope.row.title : scope.row.title}}</span>
+            </template>
+          </el-table-column>
           <el-table-column v-if="(item.name === 'description') && item.isShow"
               key="description"
-              prop="description"
               align="center"
               label="描述"
-              width="180"></el-table-column>
+              width="180">
+            <template slot-scope="scope">
+              <span :title="scope.row.description">{{scope.row.description ? scope.row.description.length > 8 ? scope.row.description.slice(0,10) + '...' : scope.row.description : scope.row.description}}</span>
+            </template>
+          </el-table-column>
           <el-table-column v-if="(item.name === 'stock') && item.isShow"
               key="stock"
               prop="stock"
@@ -651,7 +657,7 @@
     },
     created() {
       // 默认查一个月的
-      this.dataPicker = getDatePickerTime(30);
+      this.dataPicker = getDatePickerTime(90);
       this.getBookList();
       this.getAllClassifyFun();
       let tableItemStorage = localStorage.getItem(STORAGE_NAME);
@@ -709,7 +715,7 @@
       },
       // 重置搜索条件
       resetSearch() {
-        this.dataPicker = getDatePickerTime(30);
+        this.dataPicker = getDatePickerTime(90);
         this.searchParam = {
           pageNumber: 1,
           pageSize: 15,
