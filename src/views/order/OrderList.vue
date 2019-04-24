@@ -280,6 +280,15 @@
               </el-popover>
             </template>
           </el-table-column>
+          <el-table-column v-if="(item.name === 'remark') && item.isShow"
+              key="remark"
+              align="center"
+              label="备注"
+              width="200">
+            <template slot-scope="scope">
+              {{scope.row.remark || '--'}}
+            </template>
+          </el-table-column>
           <el-table-column v-if="(item.name === 'createdAt') && item.isShow"
               key="createdAt"
               prop="createdAt"
@@ -828,6 +837,11 @@
           {
             name: "deliveryAddressId",
             title: "收货地址",
+            isShow: true
+          },
+          {
+            name: "remark",
+            title: "备注",
             isShow: true
           },
           {
