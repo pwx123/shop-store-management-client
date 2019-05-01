@@ -93,16 +93,16 @@
               localStorage.removeItem(SAVE_NAME);
             }
             try {
-              let res = await getPublicKey();
+              let res = await getPublicKey(); // 获取公钥
               if (res.errorCode === 200) {
                 let name = this.formData.name;
                 let encryptor = new JSEncrypt();
-                encryptor.setPublicKey(res.data);
-                let md5Pwd = MD5(this.formData.pwd).toString();
-                let pwd = encodeURI(encryptor.encrypt(md5Pwd));
-                let logRes = await login({name, pwd});
+                encryptor.setPublicKey(res.data); // JSEncrypt 设置公钥
+                let md5Pwd = MD5(this.formData.pwd).toString(); // 登录密码进行MD5加密
+                let pwd = encodeURI(encryptor.encrypt(md5Pwd)); // JSEncrypt 通过公钥再次进行加密
+                let logRes = await login({name, pwd}); // 执行登录操作
                 if (logRes.errorCode === 200) {
-                  var path = this.$route.query.redirect
+                  let path = this.$route.query.redirect
                     ? this.$route.query.redirect
                     : "/";
                   this.$message({

@@ -25,8 +25,8 @@ axios.interceptors.response.use(
   error => {
     if (error.response.status) {
       switch (error.response.status) {
-        case 401:
-          let path = `/login?redirect=${router.currentRoute.fullPath}`;
+        case 401: // 401 未登录 跳转登录界面
+          let path = `/login?redirect=${router.currentRoute.fullPath}`; // 记录跳转登录前的页面
           setTimeout(() => {
             router.replace({
               path: path
