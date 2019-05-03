@@ -1,4 +1,4 @@
-// 引入 axios
+﻿// 引入 axios
 import axios from "axios";
 import router from "@/router";
 
@@ -26,7 +26,7 @@ axios.interceptors.response.use(
     if (error.response.status) {
       switch (error.response.status) {
         case 401: // 401 未登录 跳转登录界面
-          let path = `/login?redirect=${router.currentRoute.fullPath}`; // 记录跳转登录前的页面
+          var path = `/login?redirect=${router.currentRoute.fullPath}`; // 记录跳转登录前的页面
           setTimeout(() => {
             router.replace({
               path: path
