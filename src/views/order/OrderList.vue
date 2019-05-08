@@ -1467,6 +1467,7 @@
       font-size 12px
       border 1px solid #ebebeb
       border-top none
+      padding 10px
 
       & > span
         flex 1

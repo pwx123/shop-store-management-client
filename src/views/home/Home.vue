@@ -152,7 +152,7 @@ export default {
     setMessageAudioTips() {
       let audioTips = new Audio();
       audioTips.src =
-        "https://shop-store-management-1258820804.cos.ap-guangzhou.myqcloud.com/audio/ding.mp3";
+        this.$basePath + "/ding.mp3";
       this.audioTips = audioTips;
     },
     ...mapActions(["getUserInfoActions"])

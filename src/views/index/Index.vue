@@ -51,7 +51,8 @@
             <span>排行</span>
           </li>
           <li :class="'trans-li-' + index + (isActive ? ' active' : '')" :key="index" v-for="(item,index) in topInfo.book">
-            <span>{{item ? item.bookName : "--"}}</span>
+            <span
+                :title="item ? item.bookName:''">{{item ? item.bookName.length > 8 ? item.bookName.slice(0,8) + "..." : item.bookName : "--"}}</span>
             <span>{{item ? item.bookCount : "--"}}</span>
             <span>{{item ? (index < 3 ? "" : index+1) : "--"}}
             <span :class="topClass(index)" v-if="(index < 3) && item"></span>
@@ -70,7 +71,8 @@
             <span>排行</span>
           </li>
           <li :class="'trans-li-' + index + (isActive ? ' active' : '')" :key="index" v-for="(item,index) in topInfo.stock">
-            <span>{{item ? item.bookName : "--"}}</span>
+            <span
+                :title="item ? item.bookName:''">{{item ? item.bookName.length > 8 ? item.bookName.slice(0,8) + "..." : item.bookName : "--"}}</span>
             <span>{{item ? item.stockNum : "--"}}</span>
             <span>{{item ? (index < 3 ? "" : index+1) : "--"}}
             <span :class="topClass(index)" v-if="(index < 3) && item"></span>
