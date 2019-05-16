@@ -1,5 +1,5 @@
 import Vue from "vue";
-import ElementUI from "element-ui";
+// import ElementUI from "element-ui";
 import "element-ui/lib/theme-chalk/index.css";
 import VueClipboard from "vue-clipboard2";
 import VueSocketio from "vue-socket.io";
@@ -27,7 +27,7 @@ Vue.filter("money", function (value) {
   }
 });
 
-Vue.use(ElementUI);
+// Vue.use(ElementUI);
 Vue.use(VueClipboard);
 
 new Vue({
