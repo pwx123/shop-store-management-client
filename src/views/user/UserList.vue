@@ -529,9 +529,7 @@
               handleError(error);
             }
           })
-          .catch(() => {
-            row.status = row.status == 0 ? 1 : 0;
-          });
+          .catch();
       },
       // 查看收货地址
       async showDeliveryAddress(row) {
