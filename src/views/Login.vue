@@ -60,8 +60,8 @@
       return {
         logining: false,
         formData: {
-          name: "",
-          pwd: "",
+          name: "15553598110",
+          pwd: "pwx980101",
           savePwd: true
         },
         formRules: {
